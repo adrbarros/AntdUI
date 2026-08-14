@@ -959,10 +959,11 @@ namespace AntdUI
             if (scroll_show) g.SetClip(new Rectangle(e.Rect.X, e.Rect.Y, rect_r.Right - rect_r.Height, e.Rect.Height));
             int sy = ScrollBar.Value;
             g.TranslateTransform(0, -sy);
+            bool enable = Enabled;
             Color color_fore, color_fore_active, fore_enabled = Colour.TextQuaternary.GetSymbol(ColorScheme, "foreDisabled", nameof(Menu), Name), back_hover, back_active;
             if (Config.IsDark || ColorScheme == TAMode.Dark)
             {
-                color_fore = fore ?? Colour.Text.Get(ColorScheme, nameof(Menu), Name);
+                color_fore = fore ?? Colour.TextSecondary.Get(ColorScheme, nameof(Menu), Name);
                 back_hover = color_fore_active = ForeActive ?? Colour.TextBase.Get(ColorScheme, nameof(Menu), Name);
                 back_active = BackActive ?? Colour.Primary.Get(ColorScheme, nameof(Menu), Name);
             }
@@ -977,7 +978,7 @@ namespace AntdUI
             using (var sub_bg = new SolidBrush(Colour.FillQuaternary.Get(ColorScheme, nameof(Menu), Name)))
             using (var brush_split = new SolidBrush(Colour.Split.Get(ColorScheme, nameof(Menu), Name)))
             {
-                PaintItems(g, e.Rect, sy, items, color_fore, color_fore_active, fore_enabled, back_hover, back_active, _radius, sub_bg, brush_split);
+                PaintItems(g, e.Rect, sy, items, color_fore, color_fore_active, fore_enabled, back_hover, back_active, _radius, sub_bg, brush_split, enable);
             }
             g.ResetTransform();
             if (scroll_show)
@@ -996,7 +997,7 @@ namespace AntdUI
             base.OnDraw(e);
         }
 
-        void PaintItems(Canvas g, Rectangle rect, int sy, MenuItemCollection items, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, SolidBrush sub_bg, SolidBrush brush_split)
+        void PaintItems(Canvas g, Rectangle rect, int sy, MenuItemCollection items, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, SolidBrush sub_bg, SolidBrush brush_split, bool enable)
         {
             foreach (var it in items)
             {
@@ -1006,20 +1007,20 @@ namespace AntdUI
                     if (it.Depth == -1) g.Fill(brush_split, it.rect);
                     else
                     {
-                        PaintIt(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius);
+                        PaintIt(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
                         if (!collapsed && (it.Expand || it.ExpandThread) && it.items != null && it.items.Count > 0)
                         {
                             var state = g.Save();
                             if (it.ExpandThread) g.SetClip(new RectangleF(rect.X, it.rect.Bottom, rect.Width, it.ExpandHeight * it.ExpandProg));
                             if (ShowSubBack) g.Fill(sub_bg, new RectangleF(rect.X, it.SubY, rect.Width, it.SubHeight));
-                            PaintItemExpand(g, rect, sy, it.items, fore, fore_active, fore_enabled, back_hover, back_active, radius, brush_split);
+                            PaintItemExpand(g, rect, sy, it.items, fore, fore_active, fore_enabled, back_hover, back_active, radius, brush_split, enable);
                             g.Restore(state);
                         }
                     }
                 }
             }
         }
-        void PaintItemExpand(Canvas g, Rectangle rect, int sy, MenuItemCollection items, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, SolidBrush brush_split)
+        void PaintItemExpand(Canvas g, Rectangle rect, int sy, MenuItemCollection items, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, SolidBrush brush_split, bool enable)
         {
             foreach (var it in items)
             {
@@ -1029,7 +1030,7 @@ namespace AntdUI
                     if (it.Depth == -1) g.Fill(brush_split, it.rect);
                     else
                     {
-                        PaintIt(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius);
+                        PaintIt(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
                         if ((it.Expand || it.ExpandThread) && it.items != null && it.items.Count > 0)
                         {
                             if (it.ExpandThread)
@@ -1040,28 +1041,28 @@ namespace AntdUI
                                     using (var g2 = Graphics.FromImage(it.ExpandTemp).HighLay(Dpi, true))
                                     {
                                         g2.TranslateTransform(0, -it.rect.Bottom);
-                                        PaintItemExpand(g2, rect, sy, it.items, fore, fore_active, fore_enabled, back_hover, back_active, radius, brush_split);
+                                        PaintItemExpand(g2, rect, sy, it.items, fore, fore_active, fore_enabled, back_hover, back_active, radius, brush_split, enable);
                                     }
                                 }
                                 g.Image(it.ExpandTemp, new Rectangle(rect.X, it.rect.Bottom, it.ExpandTemp.Width, it.ExpandRHeight), it.ExpandTemp.Width, it.ExpandRHeight, it.ExpandProg);
                             }
-                            else PaintItemExpand(g, rect, sy, it.items, fore, fore_active, fore_enabled, back_hover, back_active, radius, brush_split);
+                            else PaintItemExpand(g, rect, sy, it.items, fore, fore_active, fore_enabled, back_hover, back_active, radius, brush_split, enable);
                         }
                     }
                 }
             }
         }
 
-        void PaintIt(Canvas g, MenuItem it, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius)
+        void PaintIt(Canvas g, MenuItem it, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, bool enable)
         {
-            if (collapsed) PaintItemMini(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius);
-            else PaintItem(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius);
+            if (collapsed) PaintItemMini(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
+            else PaintItem(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
             it.PaintBadge(Font, it.rect, g, ColorScheme, Name);
         }
 
-        void PaintItemMini(Canvas g, MenuItem it, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius)
+        void PaintItemMini(Canvas g, MenuItem it, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, bool enable)
         {
-            if (it.Enabled)
+            if (enable && it.Enabled)
             {
                 if (Config.IsDark || ColorScheme == TAMode.Dark)
                 {
@@ -1072,11 +1073,7 @@ namespace AntdUI
                     }
                     else
                     {
-                        if (it.AnimationHover)
-                        {
-                            PaintIcon(g, it, fore);
-                            PaintIcon(g, it, Helper.ToColorN(it.AnimationHoverValue, back_hover));
-                        }
+                        if (it.AnimationHover) PaintIcon(g, it, Style.BlendColors(fore, it.AnimationHoverValue, back_hover));
                         else if (it.Hover) PaintIcon(g, it, back_hover);
                         else PaintIcon(g, it, fore);
                     }
@@ -1103,9 +1100,9 @@ namespace AntdUI
             }
         }
 
-        void PaintItem(Canvas g, MenuItem it, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius)
+        void PaintItem(Canvas g, MenuItem it, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, bool enable)
         {
-            if (it.Enabled)
+            if (enable && it.Enabled)
             {
                 if (Config.IsDark || ColorScheme == TAMode.Dark)
                 {
@@ -1124,11 +1121,7 @@ namespace AntdUI
                     }
                     else
                     {
-                        if (it.AnimationHover)
-                        {
-                            PaintTextIconExpand(g, it, fore);
-                            PaintTextIconExpand(g, it, Helper.ToColorN(it.AnimationHoverValue, back_hover));
-                        }
+                        if (it.AnimationHover) PaintTextIconExpand(g, it, Style.BlendColors(fore, it.AnimationHoverValue, back_hover));
                         else if (it.Hover) PaintTextIconExpand(g, it, back_hover);
                         else PaintTextIconExpand(g, it, fore);
                     }
@@ -1339,11 +1332,7 @@ namespace AntdUI
             if (it.Button == null) return;
             foreach (var item in it.Button)
             {
-                if (item.AnimationHover)
-                {
-                    PaintCustomButtonIcon(g, item, fore);
-                    PaintCustomButtonIcon(g, item, Helper.ToColorN(it.AnimationHoverValue, fore_active));
-                }
+                if (item.AnimationHover) PaintCustomButtonIcon(g, item, Style.BlendColors(fore, item.AnimationHoverValue, fore_active));
                 else if (item.Hover) PaintCustomButtonIcon(g, item, fore_active);
                 else PaintCustomButtonIcon(g, item, fore);
                 item.PaintBadge(Font, item.rect, g, ColorScheme, Name);
