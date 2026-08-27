@@ -291,14 +291,18 @@ namespace AntdUI
                 m.Result = new IntPtr(3);
                 return;
             }
-            base.WndProc(ref m);
+            try
+            {
+                base.WndProc(ref m);
+            }
+            catch { }
         }
 
         #endregion
 
         #region 关闭
 
-        bool isClosing = false;
+        internal bool isClosing = false;
         public virtual void IClosing() { }
         public void IClose(bool isdispose = false)
         {
@@ -321,6 +325,7 @@ namespace AntdUI
             try
             {
                 if (IsDisposed) return;
+                isClosing = true;
                 IClosing();
                 if (InvokeRequired) Invoke(Dispose);
                 else Dispose();

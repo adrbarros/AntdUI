@@ -844,6 +844,55 @@ namespace AntdUI
             else base.ImeMode = value;
         }
 
+        #region RTL
+
+        RightToLeft rightToLeft = RightToLeft.Inherit;
+        /// <summary>
+        /// RTL（从右到左）书写方向；默认 Inherit：文本含 RTL 字符或父容器 RTL 时启用
+        /// </summary>
+        [Description("RTL（从右到左）书写方向"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(RightToLeft.Inherit), AmbientValue(RightToLeft.Inherit)]
+        public override RightToLeft RightToLeft
+        {
+            get => rightToLeft;
+            set
+            {
+                if (rightToLeft == value) return;
+                rightToLeft = value;
+                rtl_run_dirty = true;
+                CalculateRect();
+                Invalidate();
+                OnPropertyChanged(nameof(RightToLeft));
+            }
+        }
+
+        /// <summary>
+        /// 文本是否包含 RTL 字符
+        /// </summary>
+        internal bool HasRTLText = false;
+
+        /// <summary>
+        /// RTL 连续字符簇宽度待校正
+        /// </summary>
+        internal bool rtl_run_dirty = false;
+
+        /// <summary>
+        /// 是否按 RTL（从右到左）渲染（密码框、OTP 模式强制 LTR）
+        /// </summary>
+        internal bool IsRTL => !IsPassWord && !ModeRange && (rightToLeft == RightToLeft.Yes || (rightToLeft == RightToLeft.Inherit && (HasRTLText || base.RightToLeft == RightToLeft.Yes)));
+
+        protected override void OnRightToLeftChanged(EventArgs e)
+        {
+            base.OnRightToLeftChanged(e);
+            if (rightToLeft == RightToLeft.Inherit)
+            {
+                rtl_run_dirty = true;
+                CalculateRect();
+                Invalidate();
+            }
+        }
+
+        #endregion
+
         int selectionStart = 0, selectionStartTemp = 0, selectionLength = 0;
         /// <summary>
         /// 所选文本的起点
@@ -2018,7 +2067,6 @@ namespace AntdUI
             HasFocus = true;
             CaretInfo.Show = CaretVisible;
             ExtraMouseDown = true;
-            if (Config.TouchKeyboard && Helper.IsTouch()) Helper.OpenOsk();
         }
 
         protected override void OnLostFocus(EventArgs e)
@@ -2077,7 +2125,11 @@ namespace AntdUI
                     if (UseContextMenu) OnOpenContextMenu();
                     break;
             }
-            base.WndProc(ref m);
+            try
+            {
+                base.WndProc(ref m);
+            }
+            catch { }
         }
 
         Form? _contextMenu;
@@ -2237,13 +2289,29 @@ namespace AntdUI
             CacheCaret first = cache_caret[0], last = cache_caret[cache_caret.Length - 1];
             if (multiline)
             {
-                if (x < first.x && y < first.y) return first;
-                else if (x > last.x && y > last.y) return last;
+                if (IsRTL)
+                {
+                    if (x > first.x && y < first.y) return first;
+                    else if (x < last.x && y > last.y) return last;
+                }
+                else
+                {
+                    if (x < first.x && y < first.y) return first;
+                    else if (x > last.x && y > last.y) return last;
+                }
             }
             else
             {
-                if (x < first.x) return first;
-                else if (x > last.x) return last;
+                if (IsRTL)
+                {
+                    if (x > first.x) return first;
+                    else if (x < last.x) return last;
+                }
+                else
+                {
+                    if (x < first.x) return first;
+                    else if (x > last.x) return last;
+                }
             }
             return FindNearestFontX(x, FindNearestFontY(y, cache_caret));
         }
@@ -2258,13 +2326,29 @@ namespace AntdUI
             CacheCaret first = cache_caret[0], last = cache_caret[cache_caret.Length - 1];
             if (multiline)
             {
-                if (x < first.x && y < first.y) return first;
-                else if (x > last.x && y > last.y) return last;
+                if (IsRTL)
+                {
+                    if (x > first.x && y < first.y) return first;
+                    else if (x < last.x && y > last.y) return last;
+                }
+                else
+                {
+                    if (x < first.x && y < first.y) return first;
+                    else if (x > last.x && y > last.y) return last;
+                }
             }
             else
             {
-                if (x < first.x) return first;
-                else if (x > last.x) return last;
+                if (IsRTL)
+                {
+                    if (x > first.x) return first;
+                    else if (x < last.x) return last;
+                }
+                else
+                {
+                    if (x < first.x) return first;
+                    else if (x > last.x) return last;
+                }
             }
             return FindNearestFontX(x, FindNearestFontY(y, cache_caret, CaretInfo.Height / 2));
         }
@@ -2325,6 +2409,11 @@ namespace AntdUI
                 else
                 {
                     if (textalign == HorizontalAlignment.Center) CaretInfo.X = rect_text.X + rect_text.Width / 2;
+                    else if (IsRTL)
+                    {
+                        if (textalign == HorizontalAlignment.Right) CaretInfo.X = rect_text.X;
+                        else CaretInfo.X = rect_text.Right;
+                    }
                     else if (textalign == HorizontalAlignment.Right) CaretInfo.X = rect_text.Right;
                 }
             }
@@ -2647,8 +2736,8 @@ namespace AntdUI
                 bor = (int)Math.Ceiling(sps * 2 + (WaveSize + borderWidth / 2F) * Dpi * 2), ux = 0;
 
             string? prefixText = PrefixText, suffixText = SuffixText;
-            bool has_prefixText = prefixText != null, has_suffixText = suffixText != null, has_prefix = HasPrefix, has_suffix = HasSuffix;
-            if (loading || is_clear)
+            bool has_prefixText = prefixText != null, has_suffixText = suffixText != null, has_prefix = HasPrefix, has_suffix = HasSuffix, has_loading = loading && LoadingValue > -1;
+            if (has_loading || is_clear)
             {
                 int icon_size = (int)(lineHeight * iconratio), icon_right_size = icon_size;
                 if (iconratioRight.HasValue) icon_right_size = (int)(icon_size * iconratioRight.Value);

@@ -58,6 +58,21 @@ namespace AntdUI
         public override string name => "Mask";
         Func<GraphicsPath>? RenderRegion;
 
+        protected override void WndProc(ref System.Windows.Forms.Message m)
+        {
+            // 关闭动画期间，让鼠标点击穿透到下方窗口
+            if (isClosing && m.Msg == 0x84) // WM_NCHITTEST
+            {
+                m.Result = new IntPtr(-1); // HTTRANSPARENT
+                return;
+            }
+            try
+            {
+                base.WndProc(ref m);
+            }
+            catch { }
+        }
+
         Control[]? list;
         protected override void OnLoad(EventArgs e)
         {
@@ -96,7 +111,6 @@ namespace AntdUI
             LoadVisible();
             base.OnLoad(e);
         }
-
 
         private void Parent_Disposed(object? sender, EventArgs e) => IClose();
         private void Parent_VisibleChanged(object? sender, EventArgs e) => LoadVisible();
@@ -179,6 +193,7 @@ namespace AntdUI
 
         protected override void Dispose(bool disposing)
         {
+            owner.Activate();
             if (list == null) owner.VisibleChanged -= Parent_VisibleChanged;
             else
             {

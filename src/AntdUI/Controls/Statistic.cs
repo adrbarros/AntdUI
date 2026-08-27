@@ -10,7 +10,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
 using System.Drawing.Drawing2D;
-using System.Windows.Forms;
 
 namespace AntdUI
 {
@@ -243,12 +242,12 @@ namespace AntdUI
         #region 渲染
 
         FormatFlags sf = FormatFlags.VerticalCenter | FormatFlags.Left | FormatFlags.NoWrapEllipsis;
-        protected override void OnPaint(PaintEventArgs e)
+        protected override void OnDraw(DrawEventArgs e)
         {
-            base.OnPaint(e);
-            var g = e.Graphics.High();
+            base.OnDraw(e);
+            var g = e.Canvas;
             var bor = borderWidth * Dpi;
-            var rect = ClientRectangle.PaddingRect(Padding, bor / 2F);
+            var rect = ClientRectangle.PaddingRectNoDpi(Padding, bor / 2F);
             var size = g.MeasureString(Config.NullText, Font);
             int gap = (int)(size.Height * 0.18F), gap2 = gap * 2, gapbig = gap * gap;
             using (var font = new Font(Font.FontFamily.Name, Font.Size * 2.2F))
