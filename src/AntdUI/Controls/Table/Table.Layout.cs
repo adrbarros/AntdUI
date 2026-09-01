@@ -339,63 +339,7 @@ namespace AntdUI
 
                 #endregion
 
-                foreach (var it in read_width_cell)
-                {
-                    var minWidth = _columns[it.Key].MinWidth;
-                    if (minWidth != null)
-                    {
-                        if (minWidth.EndsWith("%") && float.TryParse(minWidth.TrimEnd('%'), out var f))
-                        {
-                            int min = (int)(rect.Width * f / 100F);
-                            if (min > firstrow.cells[it.Key].MinWidth) firstrow.cells[it.Key].MinWidth = min;
-                            if (it.Value.value < min)
-                            {
-                                it.Value.value = min;
-                                if (col_width.TryGetValue(it.Key, out _)) col_width[it.Key] = min;
-                                else col_width.Add(it.Key, min);
-                            }
-                        }
-                        else if (int.TryParse(minWidth, out var i))
-                        {
-                            int min = (int)(i * Dpi);
-                            if (min > firstrow.cells[it.Key].MinWidth) firstrow.cells[it.Key].MinWidth = min;
-                            if (it.Value.value < min)
-                            {
-                                it.Value.value = min;
-                                if (col_width.TryGetValue(it.Key, out _)) col_width[it.Key] = min;
-                                else col_width.Add(it.Key, min);
-                            }
-                        }
-                    }
-                }
-
-                foreach (var it in read_width_cell)
-                {
-                    var maxWidth = _columns[it.Key].MaxWidth;
-                    if (maxWidth != null)
-                    {
-                        if (maxWidth.EndsWith("%") && float.TryParse(maxWidth.TrimEnd('%'), out var f))
-                        {
-                            int max = (int)(rect.Width * f / 100F);
-                            if (it.Value.value > max)
-                            {
-                                it.Value.value = max;
-                                if (col_width.TryGetValue(it.Key, out _)) col_width[it.Key] = max;
-                                else col_width.Add(it.Key, max);
-                            }
-                        }
-                        else if (int.TryParse(maxWidth, out var i))
-                        {
-                            int max = (int)(i * Dpi);
-                            if (it.Value.value > max)
-                            {
-                                it.Value.value = max;
-                                if (col_width.TryGetValue(it.Key, out _)) col_width[it.Key] = max;
-                                else col_width.Add(it.Key, max);
-                            }
-                        }
-                    }
-                }
+                CalculateWidth(rect, _columns, read_width_cell, ref col_width, firstrow);
 
                 var width_cell = CalculateWidth(rect, heightEs, true, ref rect_real, col_width, read_width_cell, gap.x2, check_size, sort_size, ref is_exceed);
 
@@ -731,6 +675,32 @@ namespace AntdUI
 
         Dictionary<int, int> tmpcol_width = new Dictionary<int, int>(0);
 
+        void CalculateWidth(Rectangle rect, List<Column> _columns, Dictionary<int, AutoWidth> read_width_cell, ref Dictionary<int, object> col_width, RowTemplate firstrow)
+        {
+            foreach (var it in read_width_cell)
+            {
+                int? min = ColumnWidth(_columns[it.Key].MinWidth, rect.Width), max = ColumnWidth(_columns[it.Key].MaxWidth, rect.Width);
+                if (min.HasValue)
+                {
+                    if (min.Value > firstrow.cells[it.Key].MinWidth) firstrow.cells[it.Key].MinWidth = min.Value;
+                    if (it.Value.minvalue < min) it.Value.minvalue = min.Value;
+                    if (it.Value.value < min)
+                    {
+                        it.Value.value = min.Value;
+                        if (col_width.TryGetValue(it.Key, out _)) col_width[it.Key] = min;
+                        else col_width.Add(it.Key, min);
+                    }
+                }
+
+                if (max.HasValue && it.Value.value > max.Value)
+                {
+                    it.Value.value = max.Value;
+                    if (col_width.TryGetValue(it.Key, out _)) col_width[it.Key] = max;
+                    else col_width.Add(it.Key, max);
+                }
+            }
+        }
+
         /// <summary>
         /// 计算宽度
         /// </summary>
@@ -760,7 +730,7 @@ namespace AntdUI
                     if (value is int val_int)
                     {
                         if (val_int == -1) _value = it.Value.value;
-                        else if (val_int == -2) _value = it.Value.minvalue;
+                        else if (val_int == -2) _value = Math.Max(it.Value.minvalue, it.Value.value);
                         else _value = val_int;
                     }
                     if (value is float val_float) _value = rect.Width * val_float;
@@ -835,15 +805,14 @@ namespace AntdUI
                 {
                     int sum_width;
                     if (showX && max_width + ScrollBar.SIZE > use_width) width_cell = CalculateWidth(rect, col_width, read_width, use_width, max_width += ScrollBar.SIZE, gap2, check_size, sort_size, out sum_width);
-                    else width_cell = CalculateWidth(rect, col_width, read_width, use_width, gap2, check_size, sort_size, out sum_width);
+                    else width_cell = CalculateWidth(rect, col_width, read_width, use_width, null, gap2, check_size, sort_size, out sum_width);
                     if (change && rect_read.Width > sum_width) rect_read.Width = sum_width;
                     return width_cell;
                 }
             }
             return width_cell;
         }
-        Dictionary<int, int> CalculateWidth(Rectangle rect, Dictionary<int, object> col_width, Dictionary<int, AutoWidth> read_width,
-            int use_width, float max_width, int gap2, int check_size, int sort_size, out int sum_width)
+        Dictionary<int, int> CalculateWidth(Rectangle rect, Dictionary<int, object> col_width, Dictionary<int, AutoWidth> read_width, int use_width, float? max_width, int gap2, int check_size, int sort_size, out int sum_width)
         {
             var width_cell = new Dictionary<int, int>(read_width.Count);
             var fill_count = new List<int>(col_width.Count);
@@ -862,7 +831,11 @@ namespace AntdUI
                 }
                 else if (it.Value.value == -1F) width_cell.Add(it.Key, check_size * 2);
                 else if (it.Value.value == -2F) width_cell.Add(it.Key, sort_size + gap2);
-                else width_cell.Add(it.Key, (int)Math.Ceiling(use_width * (it.Value.value / max_width)));
+                else
+                {
+                    if (max_width.HasValue) width_cell.Add(it.Key, (int)Math.Ceiling(use_width * (it.Value.value / max_width.Value)));
+                    else width_cell.Add(it.Key, it.Value.value);
+                }
             }
             sum_width = 0;
             foreach (var it in width_cell) sum_width += it.Value;
@@ -874,37 +847,13 @@ namespace AntdUI
             }
             return width_cell;
         }
-        Dictionary<int, int> CalculateWidth(Rectangle rect, Dictionary<int, object> col_width, Dictionary<int, AutoWidth> read_width,
-            int use_width, int gap2, int check_size, int sort_size, out int sum_width)
+
+        int? ColumnWidth(string? max, int width)
         {
-            var width_cell = new Dictionary<int, int>(read_width.Count);
-            var fill_count = new List<int>(col_width.Count);
-            foreach (var it in read_width)
-            {
-                if (tmpcol_width.TryGetValue(it.Key, out var tw)) width_cell.Add(it.Key, tw);
-                else if (col_width.TryGetValue(it.Key, out var value))
-                {
-                    if (value is int val_int)
-                    {
-                        if (val_int == -1) width_cell.Add(it.Key, it.Value.value);
-                        else if (val_int == -2) fill_count.Add(it.Key);
-                        else width_cell.Add(it.Key, val_int);
-                    }
-                    else if (value is float val_float) width_cell.Add(it.Key, (int)Math.Ceiling(rect.Width * val_float));
-                }
-                else if (it.Value.value == -1F) width_cell.Add(it.Key, check_size * 2);
-                else if (it.Value.value == -2F) width_cell.Add(it.Key, sort_size + gap2);
-                else width_cell.Add(it.Key, it.Value.value);
-            }
-            sum_width = 0;
-            foreach (var it in width_cell) sum_width += it.Value;
-            if (fill_count.Count > 0)
-            {
-                int width = (rect.Width - sum_width) / fill_count.Count;
-                foreach (var it in fill_count) width_cell.Add(it, width);
-                sum_width = rect.Width;
-            }
-            return width_cell;
+            if (max == null) return null;
+            if (max.EndsWith("%") && float.TryParse(max.TrimEnd('%'), out var f)) return (int)(width * f / 100F);
+            else if (int.TryParse(max, out var i)) return (int)(i * Dpi);
+            return null;
         }
 
         /// <summary>
