@@ -1018,13 +1018,23 @@ namespace AntdUI
         /// </summary>
         public object[] SelectedsReal()
         {
-            if (rows == null || SortData == null || selectedIndex.Length < 1) return new object[0];
+            if (rows == null || selectedIndex.Length < 1) return new object[0];
             if (selectedIndex.Length == 1 && selectedIndex[0] == 0) return new object[0];
             var dir = rows.RealDir();
-            var list = new List<object>(SortData.Length);
-            foreach (var it in selectedIndex)
+            var list = new List<object>(dir.Count);
+            if (SortData == null)
             {
-                if (dir.TryGetValue((SortData[it - 1]), out var r)) list.Add(r);
+                foreach (var it in selectedIndex)
+                {
+                    if (dir.TryGetValue(it - 1, out var r)) list.Add(r);
+                }
+            }
+            else
+            {
+                foreach (var it in selectedIndex)
+                {
+                    if (dir.TryGetValue((SortData[it - 1]), out var r)) list.Add(r);
+                }
             }
             return list.ToArray();
         }
@@ -1281,7 +1291,7 @@ namespace AntdUI
             if (sFixedB != -1 && rect_fixed_B.HasValue) height -= rect_fixed_B.Value.Height;
             return new Rectangle(x, y, width, height);
         }
-        int ScrollLine(Rectangle rect_cel, Rectangle rect, bool force = false) => ScrollLine(rect_cel.Y, rect_cel.Bottom, rect, force);
+        int ScrollLine(Rectangle rect_cel, Rectangle rect, bool force = false) => ScrollLine(rect_cel.Y + virtualMode_Y, rect_cel.Bottom + virtualMode_Y, rect, force);
         int ScrollLine(int y, int b, Rectangle rect, bool force = false)
         {
             if (ScrollBar.ShowY)
@@ -1909,7 +1919,7 @@ namespace AntdUI
                 var it = rows[row];
                 if (it == null) return;
                 var rect = it.RECT;
-                int sy = ScrollBar.ValueY;
+                int sy = ScrollBarRealY;
                 Invalidate(new Rectangle(rect.X, rect.Y - sy, rect.Width, rect.Height));
             }
         }
@@ -1921,7 +1931,7 @@ namespace AntdUI
                 var it = rows[row];
                 if (it == null) return;
                 var rect = it.cells[column].RECT;
-                int sx = ScrollBar.ValueX, sy = ScrollBar.ValueY;
+                int sx = ScrollBar.ValueX, sy = ScrollBarRealY;
                 Invalidate(new Rectangle(rect.X - sx, rect.Y - sy, rect.Width, rect.Height));
             }
         }
@@ -2526,6 +2536,66 @@ namespace AntdUI
             }
         }
 
+        bool wrap = false;
+        /// <summary>
+        /// 单元格内子元素自动换行
+        /// </summary>
+        public bool Wrap
+        {
+            get => wrap;
+            set
+            {
+                if (wrap == value) return;
+                wrap = value;
+                Invalidates();
+            }
+        }
+
+        int wrapCount = 0;
+        /// <summary>
+        /// 每行子元素数量，>0 按数量换行，<=0 回退宽度贪心换行
+        /// </summary>
+        public int WrapCount
+        {
+            get => wrapCount;
+            set
+            {
+                if (wrapCount == value) return;
+                wrapCount = value;
+                Invalidates();
+            }
+        }
+
+        TableWrapGap wrapGapX = TableWrapGap.Fixed;
+        /// <summary>
+        /// 行内水平间距模式
+        /// </summary>
+        public TableWrapGap WrapGapX
+        {
+            get => wrapGapX;
+            set
+            {
+                if (wrapGapX == value) return;
+                wrapGapX = value;
+                Invalidates();
+            }
+        }
+
+        TableWrapGap wrapGapY = TableWrapGap.Fixed;
+        /// <summary>
+        /// 行间垂直间距模式
+        /// </summary>
+        public TableWrapGap WrapGapY
+        {
+            get => wrapGapY;
+            set
+            {
+                if (wrapGapY == value) return;
+                wrapGapY = value;
+                Invalidates();
+            }
+        }
+
         bool _fixed = false;
         /// <summary>
         /// 列是否固定
@@ -2939,6 +3009,35 @@ namespace AntdUI
         }
 
         /// <summary>
+        /// 设置单元格内子元素换行：0 关闭换行，>0 按数量换行，&lt;0 按宽度自适应换行
+        /// </summary>
+        public Column SetWrap(int count = 0)
+        {
+            if (count > 0) { Wrap = true; WrapCount = count; }
+            else if (count < 0) { Wrap = true; WrapCount = 0; }
+            else { Wrap = false; WrapCount = 0; }
+            return this;
+        }
+
+        /// <summary>
+        /// 设置行内水平间距模式
+        /// </summary>
+        public Column SetWrapGapX(TableWrapGap value)
+        {
+            WrapGapX = value;
+            return this;
+        }
+
+        /// <summary>
+        /// 设置行间垂直间距模式
+        /// </summary>
+        public Column SetWrapGapY(TableWrapGap value)
+        {
+            WrapGapY = value;
+            return this;
+        }
+
+        /// <summary>
         /// 设置列是否固定
         /// </summary>
         public Column SetFixed(bool value = true)
@@ -3182,6 +3281,21 @@ namespace AntdUI
         Left,
         Right,
         Center
+    }
+
+    /// <summary>
+    /// 换行间距模式
+    /// </summary>
+    public enum TableWrapGap : int
+    {
+        /// <summary>
+        /// 固定间距（默认 sp = gap.x / 2）
+        /// </summary>
+        Fixed = 0,
+        /// <summary>
+        /// 等分占满（语义对齐 CSS justify-content: space-between）
+        /// </summary>
+        SpaceBetween = 1
     }
 
     public enum SortMode : int
