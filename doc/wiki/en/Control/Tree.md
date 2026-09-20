@@ -27,6 +27,10 @@ Name | Description | Type | Default Value |
 **BlockNode** | Nodes occupy a row | bool | false |
 **Multiple** | Support selecting multiple nodes | bool | false |
 ||||
+**Draggable** | Enable node drag and drop | bool | true |
+**DragHandleVisible** | Show drag handle | bool | true |
+**DragAutoExpandDelay** | Drag hover auto expand delay (ms) | int | 1000 |
+||||
 **Items** | Data `TreeItem[]` | [TreeItem[]](#treeitem) | [] |
 **SelectItem** | Selected item | [TreeItem](#treeitem)`?` | `null` |
 ||||
@@ -50,6 +54,8 @@ Name | Description | Return Value | Parameters |
 **NodeMouseMove** | Mobile event | void | [TreeItem](#treeitem) item, Rectangle rect, bool hover |
 **NodeMouseDown** | Mouse down event | void | [TreeItem](#treeitem) item, Rectangle rect, TreeCType type, MouseEventArgs args |
 **NodeMouseUp** | Mouse up event | void | [TreeItem](#treeitem) item, Rectangle rect, TreeCType type, MouseEventArgs args |
+**Drop** | Occurred when drag drop | void | [TreeItem](#treeitem) from, [TreeItem](#treeitem) to, [TreeDropMode](#treedropmode) mode |
+**DropDone** | Occurred after drag drop completed | void | [TreeItem](#treeitem) from, [TreeItem](#treeitem) to, [TreeDropMode](#treedropmode) mode |
 
 ### Methods
 
@@ -99,3 +105,14 @@ Name | Description | Type | Default Value |
 **Tag** | User defined data | object`?` | `null` |
 ||||
 **PARENTITEM** | Parent object | [TreeItem](#treeitem)`?` | `null` |
+### Enum
+
+#### TreeDropMode
+
+> Drag drop mode
+
+ Name | Description | Value |
+ :--|:--|:--|
+ **Before** | Drop before target node | 0 |
+ **Inside** | Drop inside target node (as child) | 1 |
+ **After** | Drop after target node | 2 |

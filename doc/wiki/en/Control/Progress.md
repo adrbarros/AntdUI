@@ -33,6 +33,9 @@ Name | Description | Type | Default Value |
 **Value** | Progress bar `0F-1F` | float | 0F |
 **Loading** | Loading State | bool | false |
 **LoadingFull** | Animated Full | bool | false |
+**LoadingDuration** | Loading flow animation duration | int | 1000 |
+**LoadingOpacity** | Loading flow effect opacity | float | 1F |
+**LoadingColor** | Loading flow effect overlay color (`null` auto-follows `State`) | Color`?` | `null` |
 **Animation** | Animation duration | int | 200 |
 **UseTextCenter** | Center text display | bool | false |
 ||||
@@ -51,4 +54,4 @@ Name | Description | Type | Default Value |
 
 Name | Description | Return Value | Parameters |
 :--|:--|:--|:--|
-**ValueFormatChanged** | Occurred during Value formatting | string | float value |
+**ValueFormatChanged** | Occurred during Value formatting | string | float value

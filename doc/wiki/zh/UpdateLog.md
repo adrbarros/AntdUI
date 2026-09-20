@@ -1,5 +1,16 @@
 [首页](Home.md)・[更新日志](UpdateLog.md)・[配置](Config.md)・[主题](Theme.md)
 
+### `2.4.11` 2026-09-17
+
+- ➕ Tree 节点拖拽（Draggable / Drop / DropDone / TreeDropMode）
+- ➕ Tree 拖拽手柄（DragHandleVisible）
+- ➕ Tree 拖拽悬停自动展开（DragAutoExpandDelay）
+- ➕ Table 单元格按数量换行（SetWrap / WrapCount / WrapGapX / WrapGapY / TableWrapGap）
+- ➕ Progress LoadingDuration
+- ➕ Progress LoadingOpacity
+- ➕ Progress LoadingColor
+
+
 ### `2.4.10` 2026-09-11
 
 - ➕ Segmented TextAlign
