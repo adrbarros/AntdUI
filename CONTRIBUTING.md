@@ -2,6 +2,20 @@
 
 This guide explains the standards and workflows to help you collaborate smoothly, maintain code consistency, and navigate the project effectively.
 
+## Table of Contents
+
+1. [Directory Structure](#1-directory-structure)
+2. [Code Standards](#2-code-standards)
+3. [Contribution Workflow](#3-contribution-workflow)
+4. [Sync Your Fork After the PR Is Merged](#4-sync-your-fork-after-the-pr-is-merged)
+5. [Troubleshooting](#5-troubleshooting)
+   - 5.1 [Your fork is out of sync with the official repository](#51-your-fork-is-out-of-sync-with-the-official-repository)
+   - 5.2 [Delete and re-fork when commits are messed up](#52-delete-and-re-fork-when-commits-are-messed-up)
+   - 5.3 [You committed to the wrong branch](#53-you-committed-to-the-wrong-branch)
+   - 5.4 [Your PR receives review feedback requiring changes](#54-your-pr-receives-review-feedback-requiring-changes)
+
+---
+
 ## 1. Directory Structure
 Familiarize yourself with the directory layout to ensure your contributions are placed in the correct location:
 
@@ -163,9 +177,95 @@ Open [Visual Studio](https://visualstudio.microsoft.com), clone the URL you just
 
 > I will review your PR as soon as I receive it. 🧙 Have a nice day!
 
-### Note: Remember to sync with the official repository before your next contribution
+---
+
+## 4. Sync Your Fork After the PR Is Merged
+
+> Once the maintainer merges your PR, the official repository moves forward but **your fork is not updated automatically**. Before starting any new contribution, always bring your fork up to date with the upstream `main` branch.
+
+Open your forked repository on GitHub, click **Sync fork** → **Update branch**. If the button reads **No changes** your fork is already in sync.
 
 ![4](doc/wiki/en/Img/PR_4.png)
+
+Then pull the latest code locally so your working copy matches the upstream:
+
+```bash
+# Make sure you are on the main branch
+git checkout main
+
+# Pull the latest changes from your fork (origin)
+git pull origin main
+```
+
+> Tip: If you also set up an `upstream` remote pointing at the official repository, you can sync directly from upstream:
+> ```bash
+> git remote add upstream https://github.com/AntdUI/AntdUI.git
+> git fetch upstream
+> git merge upstream/main
+> git push origin main
+> ```
+
+---
+
+## 5. Troubleshooting
+
+This section covers the most common abnormal situations you may encounter during the contribution workflow.
+
+### 5.1 Your fork is out of sync with the official repository
+
+**Symptom**: GitHub shows "This branch is out-of-date" / "This branch has conflicts that must be resolved" when you submit a new PR.
+
+**Solution**: Follow [Section 4: Sync your fork](#4-sync-your-fork-after-the-pr-is-merged) first. If conflicts already exist on your branch:
+
+```bash
+git fetch upstream
+git merge upstream/main
+# Resolve conflicts in your editor, then:
+git add .
+git commit
+git push origin your-branch
+```
+
+### 5.2 Delete and re-fork when commits are messed up
+
+If your local commits have diverged badly, you have rebased incorrectly, or merge conflicts are unresolvable, the cleanest approach is to **delete the fork and start fresh**:
+
+1. **Manually back up your local changes**. Copy any modified files you still need into a folder outside the repository (e.g., `D:\AntdUI_backup\`). The re-fork process will lose all commits and branches.
+2. **Delete the fork** on GitHub: open your forked repo → **Settings** → scroll to bottom → **Delete this repository**. Confirm by typing the full repo name.
+3. **Re-fork the official repository** by following [3.1](#31-first-fork-the-official-antdui-repository-to-your-own-account) again.
+4. **Re-clone** the new fork locally by following [3.3](#33-clone-the-repository-from-your-personal-account).
+5. **Re-apply your saved changes** manually from the backup folder, then commit and submit a fresh PR.
+
+> ⚠ Warning: This is a destructive operation. Make sure your backup is complete **before** deleting the fork. Any unsubmitted local-only work that you did not back up will be lost forever.
+
+### 5.3 You committed to the wrong branch
+
+If you committed to `main` directly instead of a feature branch, you can move the commit to a new branch:
+
+```bash
+# Create and switch to a new branch, keeping the commit
+git checkout -b my-feature-branch
+# Reset main back to upstream
+git checkout main
+git reset --hard upstream/main
+git checkout my-feature-branch
+```
+
+### 5.4 Your PR receives review feedback requiring changes
+
+After the maintainer requests changes:
+
+```bash
+# Switch to the branch used for the PR
+git checkout your-pr-branch
+
+# Apply the requested changes in your editor, then:
+git add .
+git commit -m "address review feedback"
+git push origin your-pr-branch
+```
+
+The PR will automatically update — no need to open a new one.
 
 ---
 
