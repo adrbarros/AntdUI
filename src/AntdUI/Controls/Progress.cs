@@ -751,7 +751,6 @@ namespace AntdUI
             }
         }
 
-
         void PaintShapeMini(Canvas g, Rectangle rect, Color color)
         {
             var _back = back ?? Color.FromArgb(40, color);

@@ -2253,6 +2253,11 @@ namespace AntdUI
             badgeAlign = align;
             return this;
         }
+        public SegmentedItem SetBadgeAlign(TAlign value)
+        {
+            badgeAlign = value;
+            return this;
+        }
         public SegmentedItem SetBadgeOffset(int x, int y)
         {
             BadgeOffsetX = x;

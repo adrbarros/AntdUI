@@ -682,6 +682,11 @@ namespace AntdUI
                 badgeAlign = align;
                 return this;
             }
+            public ConfigBtn SetBadgeAlign(TAlign value)
+            {
+                badgeAlign = value;
+                return this;
+            }
             public ConfigBtn SetBadgeOffset(int x, int y)
             {
                 BadgeOffsetX = x;

@@ -3518,6 +3518,11 @@ namespace AntdUI
             badgeAlign = align;
             return this;
         }
+        public TreeItem SetBadgeAlign(TAlign value)
+        {
+            badgeAlign = value;
+            return this;
+        }
         public TreeItem SetBadgeOffset(int x, int y)
         {
             BadgeOffsetX = x;
