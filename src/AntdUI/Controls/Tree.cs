@@ -1494,11 +1494,12 @@ namespace AntdUI
             else if (sy > hit.rect.Bottom - oneThird) mode = TreeDropMode.After;
             else mode = TreeDropMode.Into;
 
-            // 归一化：相邻节点间隙处 After(上一节点) 与 Before(下一节点) 是同一插入位置，统一为 Before(下一节点)，消除等价双命中态
+            // 归一化：相邻节点同父时，间隙处 After(上一节点) 与 Before(下一节点) 是同一插入位置，统一为 Before(下一节点)，消除等价双命中态；
+            // 不同父时（如子节点后接主节点）保留 After / Before 两个独立命中态，便于放入上一节点之后
             if (mode == TreeDropMode.After)
             {
                 var next = FindNextVisibleSibling(hit);
-                if (next != null && CanDropOn(dragBody.Item, next))
+                if (next != null && CanDropOn(dragBody.Item, next) && ReferenceEquals(next.ParentItem, hit.ParentItem))
                 {
                     hit = next;
                     mode = TreeDropMode.Before;
