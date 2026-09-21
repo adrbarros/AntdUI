@@ -28,6 +28,10 @@ Tree 树形控件 👚
 **BlockNode** | 节点占据一行 | bool | false |
 **Multiple** | 支持点选多个节点 | bool | false |
 ||||
+**Draggable** | 是否启用节点拖拽 | bool | true |
+**DragHandleVisible** | 是否显示拖拽手柄 | bool | true |
+**DragAutoExpandDelay** | 拖拽悬停自动展开延迟（ms） | int | 1000 |
+||||
 **Items** | 数据 `TreeItem[]` | [TreeItem[]](#treeitem) | [] |
 **SelectItem** | 选择项 | [TreeItem](#treeitem)`?` | `null` |
 ||||
@@ -51,6 +55,8 @@ Tree 树形控件 👚
 **NodeMouseMove** | 移动项事件 | void | [TreeItem](#treeitem) item `项`, Rectangle rect `项区域`, bool hover `悬停值` |
 **NodeMouseDown** | 鼠标按下事件 | void | [TreeItem](#treeitem) item `项`, Rectangle rect `项区域`, TreeCType type `类型`, MouseEventArgs args `点击` |
 **NodeMouseUp** | 鼠标松开事件 | void | [TreeItem](#treeitem) item `项`, Rectangle rect `项区域`, TreeCType type `类型`, MouseEventArgs args `点击` |
+**Drop** | 拖拽放置时发生 | void | [TreeItem](#treeitem) from `源项`, [TreeItem](#treeitem) to `目标项`, [TreeDropMode](#treedropmode) mode `放置模式` |
+**DropDone** | 拖拽完成后发生 | void | [TreeItem](#treeitem) from `源项`, [TreeItem](#treeitem) to `目标项`, [TreeDropMode](#treedropmode) mode `放置模式` |
 
 ### 方法
 
@@ -103,3 +109,14 @@ Tree 树形控件 👚
 **Tag** | 用户定义数据 | object`?` | `null` |
 ||||
 **PARENTITEM** | 父级对象 | [TreeItem](#treeitem)`?` | `null` |
+### 枚举
+
+#### TreeDropMode
+
+> 拖拽放置模式
+
+ 名称 | 描述 | 值 |
+ :--|:--|:--|
+ **Before** | 放置到目标节点前 | 0 |
+ **Inside** | 放置到目标节点内（作为子节点） | 1 |
+ **After** | 放置到目标节点后 | 2 |

@@ -3160,6 +3160,11 @@ namespace AntdUI
             badgeAlign = align;
             return this;
         }
+        public MenuItem SetBadgeAlign(TAlign value)
+        {
+            badgeAlign = value;
+            return this;
+        }
         public MenuItem SetBadgeOffset(int x, int y)
         {
             BadgeOffsetX = x;
@@ -3667,6 +3672,11 @@ namespace AntdUI
         {
             badgeSvg = value;
             badgeAlign = align;
+            return this;
+        }
+        public MenuButton SetBadgeAlign(TAlign value)
+        {
+            badgeAlign = value;
             return this;
         }
         public MenuButton SetBadgeOffset(int x, int y)

@@ -34,6 +34,9 @@ Progress 进度条 👚
 **Value** | 进度条 `0F-1F` | float | 0F |
 **Loading** | 加载状态 | bool | false |
 **LoadingFull** | 动画铺满 | bool | false |
+**LoadingDuration** | Loading 流动动画时长 | int | 1000 |
+**LoadingOpacity** | Loading 流动光效不透明度 | float | 1F |
+**LoadingColor** | Loading 流动光效叠加颜色（`null` 时自动跟随 `State`） | Color`?` | `null` |
 **Animation** | 动画时长 | int | 200 |
 **UseTextCenter** | 使文本居中显示 | bool | false |
 ||||

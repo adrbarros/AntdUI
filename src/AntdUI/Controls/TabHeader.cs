@@ -1599,6 +1599,11 @@ namespace AntdUI
             badgeAlign = align;
             return this;
         }
+        public TagTabItem SetBadgeAlign(TAlign value)
+        {
+            badgeAlign = value;
+            return this;
+        }
         public TagTabItem SetBadgeOffset(int x, int y)
         {
             BadgeOffsetX = x;

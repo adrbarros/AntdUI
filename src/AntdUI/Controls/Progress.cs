@@ -424,7 +424,7 @@ namespace AntdUI
                 {
                     ThreadLoading = new AnimationTask(new AnimationLoopConfig(this, () =>
                     {
-                        AnimationLoadingValue = AnimationLoadingValue.Calculate(0.01F);
+                        AnimationLoadingValue = AnimationLoadingValue.Calculate(10F / loadingDuration);
                         if (AnimationLoadingValue > 1)
                         {
                             AnimationLoadingValue = 0;
@@ -445,6 +445,56 @@ namespace AntdUI
         /// </summary>
         [Description("动画铺满"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(false)]
         public bool LoadingFull { get; set; }
+
+        int loadingDuration = 1000;
+        /// <summary>
+        /// Loading 流动动画时长（毫秒）
+        /// </summary>
+        [Description("Loading 流动动画时长"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(1000)]
+        public int LoadingDuration
+        {
+            get => loadingDuration;
+            set
+            {
+                if (value <= 0) value = 1000;
+                if (loadingDuration == value) return;
+                loadingDuration = value;
+                OnPropertyChanged(nameof(LoadingDuration));
+            }
+        }
+
+        float loadingOpacity = 1F;
+        /// <summary>
+        /// Loading 流动光效不透明度
+        /// </summary>
+        [Description("Loading 流动光效不透明度"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(1F)]
+        public float LoadingOpacity
+        {
+            get => loadingOpacity;
+            set
+            {
+                if (value <= 0) value = 1F;
+                if (loadingOpacity == value) return;
+                loadingOpacity = value;
+                OnPropertyChanged(nameof(LoadingOpacity));
+            }
+        }
+
+        Color? loadingColor = null;
+        /// <summary>
+        /// Loading 流动光效叠加颜色
+        /// </summary>
+        [Description("Loading 流动光效叠加颜色"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(null)]
+        public Color? LoadingColor
+        {
+            get => loadingColor;
+            set
+            {
+                if (loadingColor == value) return;
+                loadingColor = value;
+                OnPropertyChanged(nameof(LoadingColor));
+            }
+        }
 
         /// <summary>
         /// 动画时长
@@ -763,8 +813,8 @@ namespace AntdUI
                             using (var path = new GraphicsPath())
                             {
                                 foreach (var it in rects) path.AddRectangle(it);
-                                var alpha = 60 * (1F - AnimationLoadingValue);
-                                using (var brush_prog = new SolidBrush(Helper.ToColor(alpha, Colour.TextBase.Get(ColorScheme, nameof(Progress), Name))))
+                                var alpha = 60 * loadingOpacity * (1F - AnimationLoadingValue);
+                                using (var brush_prog = new SolidBrush(Helper.ToColor(alpha, loadingColor ?? Colour.TextBase.Get(ColorScheme, nameof(Progress), Name))))
                                 {
                                     var state = g.Save();
                                     g.SetClip(new RectangleF(rect.X, rect.Y, tmpw * _value_show * AnimationLoadingValue, rect.Height));
@@ -781,8 +831,8 @@ namespace AntdUI
                             using (var path = new GraphicsPath())
                             {
                                 foreach (var it in rects) path.AddRectangle(it);
-                                var alpha = 80 * (1F - AnimationLoadingValue);
-                                using (var brush_prog = new SolidBrush(Helper.ToColor(alpha, Colour.TextBase.Get(ColorScheme, nameof(Progress), Name))))
+                                var alpha = 80 * loadingOpacity * (1F - AnimationLoadingValue);
+                                using (var brush_prog = new SolidBrush(Helper.ToColor(alpha, loadingColor ?? Colour.TextBase.Get(ColorScheme, nameof(Progress), Name))))
                                 {
                                     var state = g.Save();
                                     g.SetClip(new RectangleF(rect.X, rect.Y, rect.Width * AnimationLoadingValue, rect.Height));
@@ -1051,8 +1101,8 @@ namespace AntdUI
             {
                 if (_value_show > 0)
                 {
-                    float alpha = 60 * (1F - AnimationLoadingValue);
-                    using (var brush = new Pen(Helper.ToColor(alpha, Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), size))
+                    float alpha = 60 * loadingOpacity * (1F - AnimationLoadingValue);
+                    using (var brush = new Pen(Helper.ToColor(alpha, loadingColor ?? Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), size))
                     {
                         if (penRound) brush.StartCap = brush.EndCap = LineCap.Round;
                         g.DrawArc(brush, rect, gapMin, (int)(max * AnimationLoadingValue));
@@ -1061,8 +1111,8 @@ namespace AntdUI
                 else if (LoadingFull)
                 {
                     max = gapMax;
-                    float alpha = 80 * (1F - AnimationLoadingValue);
-                    using (var brush = new Pen(Helper.ToColor(alpha, Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), size))
+                    float alpha = 80 * loadingOpacity * (1F - AnimationLoadingValue);
+                    using (var brush = new Pen(Helper.ToColor(alpha, loadingColor ?? Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), size))
                     {
                         if (penRound) brush.StartCap = brush.EndCap = LineCap.Round;
                         g.DrawArc(brush, rect, gapMin, (int)(max * AnimationLoadingValue));
@@ -1094,10 +1144,10 @@ namespace AntdUI
                         if (loading && AnimationLoadingValue > 0)
                         {
                             handloading = false;
-                            var alpha = 60 * (1F - AnimationLoadingValue);
+                            var alpha = 60 * loadingOpacity * (1F - AnimationLoadingValue);
                             using (var path_prog = new RectangleF(rect.X, rect.Y, _w * AnimationLoadingValue, rect.Height).RoundPath(radius))
                             {
-                                g.Fill(Helper.ToColor(alpha, Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), path_prog);
+                                g.Fill(Helper.ToColor(alpha, loadingColor ?? Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), path_prog);
                             }
                         }
                     }
@@ -1115,10 +1165,10 @@ namespace AntdUI
                                 if (loading && AnimationLoadingValue > 0)
                                 {
                                     handloading = false;
-                                    var alpha = 60 * (1F - AnimationLoadingValue);
+                                    var alpha = 60 * loadingOpacity * (1F - AnimationLoadingValue);
                                     using (var path_prog = new RectangleF(-_w, 0, _w * 2 * AnimationLoadingValue, rect.Height).RoundPath(radius))
                                     {
-                                        g2.Fill(Helper.ToColor(alpha, Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), path_prog);
+                                        g2.Fill(Helper.ToColor(alpha, loadingColor ?? Colour.BgBase.Get(ColorScheme, nameof(Progress), Name)), path_prog);
                                     }
                                 }
                             }
@@ -1133,8 +1183,8 @@ namespace AntdUI
 
                 if (loading && AnimationLoadingValue > 0 && handloading && LoadingFull)
                 {
-                    var alpha = 80 * (1F - AnimationLoadingValue);
-                    using (var brush = new SolidBrush(Helper.ToColor(alpha, Colour.BgBase.Get(ColorScheme, nameof(Progress), Name))))
+                    var alpha = 80 * loadingOpacity * (1F - AnimationLoadingValue);
+                    using (var brush = new SolidBrush(Helper.ToColor(alpha, loadingColor ?? Colour.BgBase.Get(ColorScheme, nameof(Progress), Name))))
                     {
                         using (var path_prog = new RectangleF(rect.X, rect.Y, rect.Width * AnimationLoadingValue, rect.Height).RoundPath(radius))
                         {

@@ -23,6 +23,10 @@ Name | Description | Type | Default Value |
 **Ellipsis** | Exceeding the width will be automatically omitted | bool |false|
 **LineBreak** | Automatic line wrapping | bool |false|
 **ColBreak** | Automatic line wrapping in the header | bool |false|
+**Wrap** | Wrap child elements within cell | bool |false|
+**WrapCount** | Number of items per row, >0 wrap by count, <=0 wrap by width | int |0|
+**WrapGapX** | Horizontal gap mode within row | [TableWrapGap](#tablewrapgap) |Fixed|
+**WrapGapY** | Vertical gap mode between rows | [TableWrapGap](#tablewrapgap) |Fixed|
 **SortOrder** | Enable sorting | bool |false|
 **SortMode** | Sort Mode | SortMode |NONE|
 **ReadOnly** | Read only | bool |false|
@@ -38,6 +42,25 @@ Name | Description | Type | Default Value |
 **Style** | Column Style | CellStyleInfo`?` ||
 **ColStyle** | Title column style | CellStyleInfo`?` ||
 **Render** | SLOT | Func<object? `Current value`, object `Row metadata`, int `rowIndex`, object?>? | Return formatted data |
+
+### Methods
+
+Name | Description | Return Value | Parameters |
+:--|:--|:--|:--|
+**SetWrap** | Set cell child element wrapping | [Column](#column) | int count = 0 `0 disable, >0 wrap by count, <0 wrap by width` |
+**SetWrapGapX** | Set horizontal gap mode within row | [Column](#column) | [TableWrapGap](#tablewrapgap) value |
+**SetWrapGapY** | Set vertical gap mode between rows | [Column](#column) | [TableWrapGap](#tablewrapgap) value |
+
+### Enum
+
+#### TableWrapGap
+
+> Wrap gap mode
+
+ Name | Description | Value |
+ :--|:--|:--|
+ **Fixed** | Fixed gap | 0 |
+ **SpaceBetween** | Evenly distributed (equal gaps before, between, and after) | 1 |
 
 #### ColumnCheck
 

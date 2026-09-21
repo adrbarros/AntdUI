@@ -23,6 +23,10 @@
 **Ellipsis** | 超过宽度将自动省略 | bool |false|
 **LineBreak** | 自动换行 | bool |false|
 **ColBreak** | 表头自动换行 | bool |false|
+**Wrap** | 单元格内子元素自动换行 | bool |false|
+**WrapCount** | 每行子元素数量，>0 按数量换行，<=0 回退宽度贪心换行 | int |0|
+**WrapGapX** | 行内水平间距模式 | [TableWrapGap](#tablewrapgap) |Fixed|
+**WrapGapY** | 行间垂直间距模式 | [TableWrapGap](#tablewrapgap) |Fixed|
 **SortOrder** | 启用排序 | bool |false|
 **SortMode** | 排序模式 | SortMode |NONE|
 **ReadOnly** | 只读 | bool |false|
@@ -38,6 +42,25 @@
 **Style** | 列样式 | CellStyleInfo`?` ||
 **ColStyle** | 标题列样式 | CellStyleInfo`?` ||
 **Render** | 插槽 | Func<object? `当前值`, object `行元数据`, int `行号`, object?>? | 返回格式化后数据 |
+
+### 方法
+
+名称 | 描述 | 返回值 | 参数 |
+:--|:--|:--|:--|
+**SetWrap** | 设置单元格内子元素换行 | [Column](#column) | int count = 0 `0 关闭换行，>0 按数量换行，<0 按宽度自适应换行` |
+**SetWrapGapX** | 设置行内水平间距模式 | [Column](#column) | [TableWrapGap](#tablewrapgap) value |
+**SetWrapGapY** | 设置行间垂直间距模式 | [Column](#column) | [TableWrapGap](#tablewrapgap) value |
+
+### 枚举
+
+#### TableWrapGap
+
+> 换行间距模式
+
+ 名称 | 描述 | 值 |
+ :--|:--|:--|
+ **Fixed** | 固定间距 | 0 |
+ **SpaceBetween** | 等分占满（首尾与行间间隙一致） | 1 |
 
 #### ColumnCheck
 

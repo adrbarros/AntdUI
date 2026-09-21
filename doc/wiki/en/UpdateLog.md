@@ -1,5 +1,22 @@
 [Home](Home.md)・[UpdateLog](UpdateLog.md)・[Config](Config.md)・[Theme](Theme.md)
 
+### `2.4.11` 2026-09-20
+
+- ➕ Tree node drag and drop (Draggable / Drop / DropDone / TreeDropMode)
+- ➕ Tree drag handle (DragHandleVisible)
+- ➕ Tree drag hover auto expand (DragAutoExpandDelay)
+- ➕ Table cell wrap by count (SetWrap / WrapCount / WrapGapX / WrapGapY / TableWrapGap)
+- ➕ Progress LoadingDuration
+- ➕ Progress LoadingOpacity
+- ➕ Progress LoadingColor
+- ➕ TimePicker adds touch sliding feature
+- ➕ MgList/Table/Tabs/Bredcrimb/Menu/Segmented/Tree Non item Click
+- ✍️ Input optimization, double-click to select segmented interaction
+- ✍️ Transfer Search Thread Asynchronous
+- ✍️ Progress GapDegree fillet
+- ✍️ Pagination RightToLeft Arabic Reverse
+- ✍️ Mask activation parent window order
+
 ### `2.4.10` 2026-09-11
 
 - ➕ Segmented TextAlign

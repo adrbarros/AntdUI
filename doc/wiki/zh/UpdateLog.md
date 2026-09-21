@@ -1,5 +1,22 @@
 [首页](Home.md)・[更新日志](UpdateLog.md)・[配置](Config.md)・[主题](Theme.md)
 
+### `2.4.11` 2026-09-20
+
+- ➕ Tree 节点拖拽（Draggable / Drop / DropDone / TreeDropMode）
+- ➕ Tree 拖拽手柄（DragHandleVisible）
+- ➕ Tree 拖拽悬停自动展开（DragAutoExpandDelay）
+- ➕ Table 单元格按数量换行（SetWrap / WrapCount / WrapGapX / WrapGapY / TableWrapGap）
+- ➕ Progress LoadingDuration
+- ➕ Progress LoadingOpacity
+- ➕ Progress LoadingColor
+- ➕ TimePicker 新增触摸滑动
+- ➕ MsgList/Table/Tabs/Breadcrumb/Menu/Segmented/Tree 非项点击
+- ✍️ Input 优化双击选中分段交互
+- ✍️ Transfer 搜索线程异步
+- ✍️ Progress GapDegree 圆角
+- ✍️ Pagination RightToLeft 阿拉伯反向
+- ✍️ Mask 激活父窗口顺序
+
 ### `2.4.10` 2026-09-11
 
 - ➕ Segmented TextAlign
