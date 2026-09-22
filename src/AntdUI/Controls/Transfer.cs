@@ -765,9 +765,8 @@ namespace AntdUI
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (ScrollBarSource.MouseMoveY(e.X, e.Y) && ScrollBarTarget.MouseMoveY(e.X, e.Y) && OnTouchMove(e.X, e.Y))
+            if (ScrollBarSource.MouseMoveY(e.X, e.Y) && ScrollBarTarget.MouseMoveY(e.X, e.Y) )
             {
-                base.OnMouseMove(e);
                 if (DragSort && mdown is TransferItem item)
                 {
                     if (dragBody != null)
@@ -777,6 +776,7 @@ namespace AntdUI
                             DropItem(e.X, e.Y, dragBody);
                             SetCursor(CursorType.SizeAll);
                             Invalidate();
+                            base.OnMouseMove(e);
                             return;
                         }
                         else
@@ -788,45 +788,50 @@ namespace AntdUI
                                 SetCursor(CursorType.SizeAll);
                                 dragBody.hand = true;
                                 DropItem(e.X, e.Y, dragBody);
+                                base.OnMouseMove(e);
                                 return;
                             }
                         }
                     }
                 }
-                hover_to_left.Switch = rect_toLeft.Contains(e.X, e.Y);
-                hover_to_right.Switch = rect_toRight.Contains(e.X, e.Y);
-                if (hover_to_left.Switch || hover_to_right.Switch)
+                if (OnTouchMove(e.X, e.Y))
                 {
-                    SetCursor(true);
-                    return;
-                }
-                if (ShowSelectAll)
-                {
-                    if (rect_sourceCheckbox.Contains(e.X, e.Y) || rect_sourceCheckboxText.Contains(e.X, e.Y))
+                    base.OnMouseMove(e);
+                    hover_to_left.Switch = rect_toLeft.Contains(e.X, e.Y);
+                    hover_to_right.Switch = rect_toRight.Contains(e.X, e.Y);
+                    if (hover_to_left.Switch || hover_to_right.Switch)
                     {
                         SetCursor(true);
                         return;
                     }
-                    if (rect_targetCheckbox.Contains(e.X, e.Y) || rect_targetCheckboxText.Contains(e.X, e.Y))
+                    if (ShowSelectAll)
                     {
-                        SetCursor(true);
-                        return;
+                        if (rect_sourceCheckbox.Contains(e.X, e.Y) || rect_sourceCheckboxText.Contains(e.X, e.Y))
+                        {
+                            SetCursor(true);
+                            return;
+                        }
+                        if (rect_targetCheckbox.Contains(e.X, e.Y) || rect_targetCheckboxText.Contains(e.X, e.Y))
+                        {
+                            SetCursor(true);
+                            return;
+                        }
                     }
-                }
-                int count = 0;
-                int sy1 = ScrollBarSource.ValueY, sy2 = ScrollBarTarget.ValueY;
-                if (items == null) return;
-                foreach (var it in items)
-                {
-                    if (it.Visible && it.Enabled)
+                    int count = 0;
+                    int sy1 = ScrollBarSource.ValueY, sy2 = ScrollBarTarget.ValueY;
+                    if (items == null) return;
+                    foreach (var it in items)
                     {
-                        if (it.IsTarget) it.Hover = it.rect.Contains(e.X, e.Y + sy2);
-                        else it.Hover = it.rect.Contains(e.X, e.Y + sy1);
-                        if (it.Hover) count++;
+                        if (it.Visible && it.Enabled)
+                        {
+                            if (it.IsTarget) it.Hover = it.rect.Contains(e.X, e.Y + sy2);
+                            else it.Hover = it.rect.Contains(e.X, e.Y + sy1);
+                            if (it.Hover) count++;
+                        }
+                        else it.Hover = false;
                     }
-                    else it.Hover = false;
+                    SetCursor(count > 0);
                 }
-                SetCursor(count > 0);
             }
         }
 
