@@ -135,7 +135,15 @@ namespace AntdUI
                             ITask.Run(() =>
                             {
                                 bool result = true;
-                                if (config.OnBtns != null)
+                                if (config.OnBtnsAsync != null)
+                                {
+                                    try
+                                    {
+                                        result = config.OnBtnsAsync(btn).Result;
+                                    }
+                                    catch { result = false; }
+                                }
+                                else if (config.OnBtns != null)
                                 {
                                     try
                                     {

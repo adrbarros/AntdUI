@@ -638,6 +638,11 @@ namespace AntdUI
             /// </summary>
             public Func<Button, bool>? OnBtns { get; set; }
 
+            /// <summary>
+            /// 自定义按钮回调 (异步)
+            /// </summary>
+            public Func<Button, Task<bool>>? OnBtnsAsync { get; set; }
+
             #endregion
 
             /// <summary>
@@ -929,6 +934,17 @@ namespace AntdUI
             public Config SetBtns(Func<Button, bool>? value)
             {
                 OnBtns = value;
+                return this;
+            }
+            public Config SetBtnsAsync(Func<Button, Task<bool>>? call, params Btn[] value)
+            {
+                Btns = value;
+                OnBtnsAsync = call;
+                return this;
+            }
+            public Config SetBtnsAsync(Func<Button, Task<bool>>? value)
+            {
+                OnBtnsAsync = value;
                 return this;
             }
             public Config SetButtonStyle(Action<string, Button>? value)
