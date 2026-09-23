@@ -765,7 +765,7 @@ namespace AntdUI
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (ScrollBarSource.MouseMoveY(e.X, e.Y) && ScrollBarTarget.MouseMoveY(e.X, e.Y) )
+            if (ScrollBarSource.MouseMoveY(e.X, e.Y) && ScrollBarTarget.MouseMoveY(e.X, e.Y))
             {
                 if (DragSort && mdown is TransferItem item)
                 {

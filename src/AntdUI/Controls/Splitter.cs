@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace AntdUI
@@ -28,10 +29,13 @@ namespace AntdUI
                 ControlStyles.AllPaintingInWmPaint |
                 ControlStyles.OptimizedDoubleBuffer |
                 ControlStyles.ResizeRedraw, true);
-
+            DoubleBufferedProp?.SetValue(Panel1, true, null);
+            DoubleBufferedProp?.SetValue(Panel2, true, null);
             SplitterMoving += Splitter_SplitterMoving;
             SplitterMoved += Splitter_SplitterMoved;
         }
+
+        readonly PropertyInfo? DoubleBufferedProp = typeof(Control).GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
 
         #region 参数
 
