@@ -32,22 +32,24 @@ namespace AntdUI
         [Description("格式化"), Category(nameof(CategoryAttribute.Behavior)), DefaultValue("HH:mm:ss")]
         public string Format { get; set; } = "HH:mm:ss";
 
-        TimeSpan _value = new TimeSpan(0, 0, 0);
+        TimeSpan? _value;
         /// <summary>
         /// 控件当前日期
         /// </summary>
-        [Description("控件当前日期"), Category(nameof(CategoryAttribute.Data)), DefaultValue(typeof(TimeSpan), "00:00:00")]
-        public TimeSpan Value
+        [Description("控件当前日期"), Category(nameof(CategoryAttribute.Data)), DefaultValue(null)]
+        public TimeSpan? Value
         {
             get => _value;
             set
             {
                 _value = value;
-                Text = new DateTime(1997, 1, 1, value.Hours, value.Minutes, value.Seconds).ToString(Format);
+                SetText(value);
                 OnValueChanged(value);
                 OnPropertyChanged(nameof(Value));
             }
         }
+
+        void SetText(TimeSpan? value) => Text = value.HasValue ? new DateTime(1997, 1, 1, value.Value.Hours, value.Value.Minutes, value.Value.Seconds).ToString(Format) : string.Empty;
 
         /// <summary>
         /// 菜单弹出位置
@@ -116,7 +118,7 @@ namespace AntdUI
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-            Text = new DateTime(1997, 1, 1, _value.Hours, _value.Minutes, _value.Seconds).ToString(Format);
+            SetText(_value);
             if (expandDrop) OpenSubForm();
         }
 
@@ -152,9 +154,9 @@ namespace AntdUI
 
         #region 事件
 
-        public event TimeSpanNEventHandler? ValueChanged;
+        public event TimeSpanEventHandler? ValueChanged;
 
-        protected virtual void OnValueChanged(TimeSpan e) => ValueChanged?.Invoke(this, new TimeSpanNEventArgs(e));
+        protected virtual void OnValueChanged(TimeSpan? e) => ValueChanged?.Invoke(this, new TimeSpanEventArgs(e));
 
         /// <summary>
         /// 下拉展开 属性值更改时发生
@@ -231,11 +233,11 @@ namespace AntdUI
             {
                 if (IsTextEmpty)
                 {
-                    Value = new TimeSpan(0, 0, 0);
+                    Value = null;
                     return;
                 }
                 if (DateTime.TryParse("1997-1-1 " + Text, out var _d)) Value = new TimeSpan(_d.Hour, _d.Minute, _d.Second);
-                Text = new DateTime(1997, 1, 1, _value.Hours, _value.Minutes, _value.Seconds).ToString(Format);
+                SetText(_value);
             }
         }
 
@@ -250,10 +252,7 @@ namespace AntdUI
 
         #region 鼠标
 
-        protected override void OnClearValue()
-        {
-            Value = new TimeSpan(0, 0, 0);
-        }
+        protected override void OnClearValue() => Value = null;
 
         protected override void OnClickContent(MouseEventArgs e)
         {
