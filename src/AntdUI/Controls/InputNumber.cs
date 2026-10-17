@@ -136,21 +136,17 @@ namespace AntdUI
         [Description("始终显示控制器"), Category(nameof(CategoryAttribute.Action)), DefaultValue(false)]
         public bool AlwaysShowControl { get; set; }
 
-        bool wheelModifyEnabled = true;
+        /// <summary>
+        /// 使用上下方向键修改值
+        /// </summary>
+        [Description("键盘方向键修改值"), Category(nameof(CategoryAttribute.Action)), DefaultValue(true)]
+        public bool KeyboardModifyEnabled { get; set; } = true;
+
         /// <summary>
         /// 鼠标滚轮修改值
         /// </summary>
         [Description("鼠标滚轮修改值"), Category(nameof(CategoryAttribute.Action)), DefaultValue(true)]
-        public bool WheelModifyEnabled
-        {
-            get => wheelModifyEnabled;
-            set
-            {
-                if (wheelModifyEnabled == value) return;
-                wheelModifyEnabled = value;
-                Invalidate();
-            }
-        }
+        public bool WheelModifyEnabled { get; set; } = true;
 
         int decimalPlaces = 0;
         /// <summary>
@@ -556,10 +552,38 @@ namespace AntdUI
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
-            if (ReadOnly || !wheelModifyEnabled) return;
-            if (e.Delta > 0) Value = currentValue + Increment;
-            else Value = currentValue - Increment;
-            if (e is HandledMouseEventArgs handled) handled.Handled = true;
+            if (!WheelModifyEnabled || e.Delta == 0) return;
+            if (ModifyValue(e.Delta > 0) && e is HandledMouseEventArgs handled) handled.Handled = true;
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            switch (keyData)
+            {
+                case Keys.Up:
+                    if (ModifyValue(true)) return true;
+                    break;
+                case Keys.Down:
+                    if (ModifyValue(false)) return true;
+                    break;
+            }
+            return base.IsInputKey(keyData);
+        }
+
+        bool ModifyValue(bool increase)
+        {
+            if (Enabled && !ReadOnly)
+            {
+                try
+                {
+                    Value = currentValue + (increase ? Increment : -Increment);
+                    return true;
+                }
+                catch
+                {
+                }
+            }
+            return false;
         }
 
         #endregion

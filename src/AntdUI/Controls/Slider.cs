@@ -23,6 +23,8 @@ namespace AntdUI
     [DefaultEvent("ValueChanged")]
     public class Slider : IControl
     {
+        public Slider() : base(ControlType.Select) { }
+
         #region 属性
 
         Color? fill;
@@ -83,8 +85,7 @@ namespace AntdUI
             get => _minValue;
             set
             {
-                if (value > _maxValue) return;
-                if (_minValue == value) return;
+                if (_minValue == value || value > _maxValue) return;
                 _minValue = value;
                 Invalidate();
             }
@@ -100,8 +101,7 @@ namespace AntdUI
             get => _maxValue;
             set
             {
-                if (value < _minValue || value < _value) return;
-                if (_maxValue == value) return;
+                if (_maxValue == value || value < _minValue) return;
                 _maxValue = value;
                 Invalidate();
             }
@@ -266,13 +266,28 @@ namespace AntdUI
         [Description("刻度文本间距"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(4)]
         public int MarkTextGap { get; set; } = 4;
 
+        /// <summary>
+        /// 使用方向键修改值
+        /// </summary>
+        [Description("键盘方向键修改值"), Category(nameof(CategoryAttribute.Action)), DefaultValue(true)]
+        public bool KeyboardModifyEnabled { get; set; } = true;
+
+        /// <summary>
+        /// 使用鼠标滚轮修改值
+        /// </summary>
+        [Description("鼠标滚轮修改值"), Category(nameof(CategoryAttribute.Action)), DefaultValue(true)]
+        public bool WheelModifyEnabled { get; set; } = true;
+
         #endregion
 
         #region 渲染
 
         internal Rectangle rect_read;
+
+        bool init = false;
         protected override void OnDraw(DrawEventArgs e)
         {
+            init = true;
             var padding = Padding;
             var _rect = e.Rect.PaddingRect(padding);
             if (_rect.Width == 0 || _rect.Height == 0) return;
@@ -410,7 +425,7 @@ namespace AntdUI
                     foreach (var it in marks)
                     {
                         float uks = ProgValue(it.Value);
-                        if (!string.IsNullOrWhiteSpace(it.Text)) g.String(it.Text, Font, it.Fore, fore, RectDotText(rect, rect_read, (int)uks, markTextGap, g.MeasureString(it.Text, Font)), FormatFlags.Center | FormatFlags.NoWrap);
+                        if (!string.IsNullOrWhiteSpace(it.Text)) g.String(it.Text, Font, it.Fore, fore, RectDotText(rect, rect_read, (int)uks, markTextGap, g.MeasureString(it.Text, Font)), FormatFlags.Center);
                         using (var brush_dot = new SolidBrush(color))
                         {
                             g.FillEllipse(brush_dot, RectDot(rect, rect_read, uks, size));
@@ -503,6 +518,8 @@ namespace AntdUI
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
+            init = false;
+            Focus();
             base.OnMouseDown(e);
             if (e.Button == MouseButtons.Left)
             {
@@ -516,10 +533,10 @@ namespace AntdUI
             base.OnMouseMove(e);
             if (mouseFlat)
             {
-                ExtraMouseDotHover = true;
+                HasMouse = true;
                 Value = FindIndex(e.X, e.Y, false);
             }
-            else ExtraMouseDotHover = rectEllipse.Contains(e.X, e.Y);
+            else HasMouse = rectEllipse.Contains(e.X, e.Y);
         }
 
         internal int FindIndex(int x, int y, bool mark)
@@ -691,14 +708,72 @@ namespace AntdUI
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
-            CloseTips();
-            ExtraMouseHover = ExtraMouseDotHover = false;
+            ExtraMouseHover = HasMouse = false;
         }
         protected override void OnLeave(EventArgs e)
         {
             base.OnLeave(e);
-            CloseTips();
-            ExtraMouseHover = ExtraMouseDotHover = false;
+            ExtraMouseHover = HasMouse = false;
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            base.OnMouseWheel(e);
+            if (!WheelModifyEnabled || e.Delta == 0) return;
+            if (ModifyValue(e.Delta > 0) && e is HandledMouseEventArgs handled) handled.Handled = true;
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            switch (keyData)
+            {
+                case Keys.Left:
+                    if (ModifyValue(align == TAlignMini.Right)) return true;
+                    break;
+                case Keys.Right:
+                    if (ModifyValue(align != TAlignMini.Right)) return true;
+                    break;
+                case Keys.Up:
+                    if (ModifyValue(align != TAlignMini.Top)) return true;
+                    break;
+                case Keys.Down:
+                    if (ModifyValue(align == TAlignMini.Top)) return true;
+                    break;
+            }
+            return base.IsInputKey(keyData);
+        }
+
+        bool ModifyValue(bool increase)
+        {
+            if (Enabled)
+            {
+                try
+                {
+                    if (Dots && marks != null && marks.Count > 0)
+                    {
+                        int? next = null;
+                        foreach (var mark in marks)
+                        {
+                            int candidate = mark.Value;
+                            if (candidate < _minValue || candidate > _maxValue) continue;
+                            if (increase ? candidate > Value && (!next.HasValue || candidate < next.Value) : candidate < Value && (!next.HasValue || candidate > next.Value)) next = candidate;
+                        }
+                        if (next.HasValue)
+                        {
+                            Value = next.Value;
+                            return true;
+                        }
+                        return false;
+                    }
+                    var value = _value + (increase ? 1 : -1);
+                    Value = Math.Max(_minValue, Math.Min(_maxValue, value));
+                    return true;
+                }
+                catch
+                {
+                }
+            }
+            return false;
         }
 
         #endregion
@@ -710,14 +785,52 @@ namespace AntdUI
         /// </summary>
         /// <param name="min">最小值</param>
         /// <param name="max">最大值</param>
-        public void SetMinMax(int min, int max)
+        public Slider SetMinMax(int min, int max)
         {
-            if (min > max) return;
+            if (min > max) return this;
             _minValue = min;
             _maxValue = max;
             if (_value < min) _value = min;
             else if (_value > max) _value = max;
             Invalidate();
+            return this;
+        }
+
+        #endregion
+
+        #region 焦点
+
+        bool hasFocus = false, hasMouse = false;
+        bool HasMouse
+        {
+            set
+            {
+                if (hasMouse == value) return;
+                hasMouse = value;
+                ExtraMouseDotHover = hasFocus || hasMouse;
+            }
+        }
+
+        bool HasFocus
+        {
+            set
+            {
+                if (hasFocus == value) return;
+                hasFocus = value;
+                ExtraMouseDotHover = hasFocus || hasMouse;
+            }
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            if (init) HasFocus = true;
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            HasFocus = false;
+            base.OnLostFocus(e);
         }
 
         #endregion
