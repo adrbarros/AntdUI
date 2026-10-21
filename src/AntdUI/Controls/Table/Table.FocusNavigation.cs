@@ -94,8 +94,9 @@ namespace AntdUI
         /// <param name="columnKey">列键名</param>
         private void MoveToNextEditableCell(NavigationConfig navigationConfig, int rowIndex, string columnKey)
         {
-            if (rows == null) return;
-            foreach (var it in rows.First.cells)
+            var row = GetNavigationRow(rowIndex);
+            if (row == null) return;
+            foreach (var it in row.cells)
             {
                 if (it.COLUMN.Key == columnKey)
                 {
@@ -106,6 +107,13 @@ namespace AntdUI
                     return;
                 }
             }
+        }
+        private RowTemplate? GetNavigationRow(int rowIndex)
+        {
+            if (rows == null) return null;
+            var row = rows[rowIndex];
+            if (row == null) return rows.First;
+            return row;
         }
         private bool MoveToNextEditableCell(int rowIndex, CELL cell)
         {

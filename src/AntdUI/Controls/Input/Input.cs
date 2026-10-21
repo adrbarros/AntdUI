@@ -589,13 +589,23 @@ namespace AntdUI
         /// 连接左边
         /// </summary>
         [Obsolete("use JoinMode"), Browsable(false), Description("连接左边"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(false)]
-        public bool JoinLeft { get; set; }
+        public bool JoinLeft
+        {
+            get => joinLeft;
+            set => joinLeft = value;
+        }
 
         /// <summary>
         /// 连接右边
         /// </summary>
         [Obsolete("use JoinMode"), Browsable(false), Description("连接右边"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(false)]
-        public bool JoinRight { get; set; }
+        public bool JoinRight
+        {
+            get => joinRight;
+            set => joinRight = value;
+        }
+
+        bool joinLeft = false, joinRight = false;
 
         #endregion
 
@@ -950,6 +960,41 @@ namespace AntdUI
             selectionLength = value;
             OnPropertyChanged(nameof(SelectionLength));
             return true;
+        }
+
+        /// <summary>
+        /// 插入符所在的选区边界（selectionStart 为锚点，插入符始终位于选区另一端）
+        /// </summary>
+        int SelectionCaretIndex
+        {
+            get
+            {
+                if (selectionLength <= 0) return selectionStart;
+                // 锚点在右端：插入符在左端（selectionStartTemp）
+                if (selectionStart > selectionStartTemp) return selectionStartTemp;
+                return selectionStartTemp + selectionLength;
+            }
+        }
+
+        /// <summary>
+        /// 保持锚点（selectionStart）不动，把插入符移动到 caret 边界并同步选区
+        /// </summary>
+        /// <param name="caret">插入符边界（字符簇索引）</param>
+        /// <returns>是否需要重绘</returns>
+        bool SetSelectionCaret(int caret)
+        {
+            int count = cache_font == null ? 0 : cache_font.Count;
+            if (caret < 0) caret = 0;
+            else if (caret > count) caret = count;
+            int start = selectionStart < caret ? selectionStart : caret;
+            bool set_e = SetSelectionLength(caret > selectionStart ? caret - selectionStart : selectionStart - caret);
+            if (selectionStartTemp != start)
+            {
+                selectionStartTemp = start;
+                set_e = true;
+            }
+            bool set_caret = SetCaretPostion(caret + 1);
+            return set_e || set_caret;
         }
 
         #endregion
@@ -2723,10 +2768,13 @@ namespace AntdUI
 
         public override Size GetPreferredSize(Size proposedSize)
         {
-            if (autoSize == TAutoSize.None) return base.GetPreferredSize(proposedSize);
-            else if (autoSize == TAutoSize.Width) return new Size(PSize.Width, base.GetPreferredSize(proposedSize).Height);
-            else if (autoSize == TAutoSize.Height) return new Size(base.GetPreferredSize(proposedSize).Width, PSize.Height);
-            return PSize;
+            switch (autoSize)
+            {
+                case TAutoSize.None: return base.GetPreferredSize(proposedSize);
+                case TAutoSize.Width: return new Size(PSize.Width, base.GetPreferredSize(proposedSize).Height);
+                case TAutoSize.Height: return new Size(base.GetPreferredSize(proposedSize).Width, PSize.Height);
+                default: return PSize;
+            }
         }
 
         public virtual Size PSize => this.GDI(g => GetPSize(g));
@@ -2806,6 +2854,8 @@ namespace AntdUI
                 {
                     int maxx = 0, usex = 0, usey = 0;
                     if (ShowPlaceholder && PlaceholderText != null) maxx = g.MeasureText(PlaceholderText, Font).Width;
+                    int? wrap_width = null;
+                    if (wordwrap && (Dock == DockStyle.Top || Dock == DockStyle.Bottom)) wrap_width = Width - UR - bor - ux - (int)(PaddingLR * Dpi) * 2;
                     foreach (var it in cache_font)
                     {
                         if (it.text == "\n" || it.text == "\r\n")
@@ -2816,6 +2866,13 @@ namespace AntdUI
                             continue;
                         }
                         else if (it.text == "\r") continue;
+                        else if (wrap_width.HasValue && usex + it.width > wrap_width.Value)
+                        {
+                            //自动换行
+                            if (usex > maxx) maxx = usex;
+                            usey += lineHeight;
+                            usex = 0;
+                        }
                         usex += it.width;
                     }
                     if (usex > maxx) maxx = usex;
@@ -2839,24 +2896,7 @@ namespace AntdUI
         {
             if (autoSize == TAutoSize.None) return true;
             if (InvokeRequired) return ITask.Invoke(this, BeforeAutoSize);
-            var PS = PSize;
-            switch (autoSize)
-            {
-                case TAutoSize.Width:
-                    if (Width == PS.Width) return true;
-                    Width = PS.Width;
-                    break;
-                case TAutoSize.Height:
-                    if (Height == PS.Height) return true;
-                    Height = PS.Height;
-                    break;
-                case TAutoSize.Auto:
-                default:
-                    if (Width == PS.Width && Height == PS.Height) return true;
-                    Size = PS;
-                    break;
-            }
-            return false;
+            return this.SetAutoSize(autoSize, PSize);
         }
 
         public virtual void HandleEvent(EventType id, object? tag)

@@ -27,7 +27,7 @@ namespace AntdUI
         {
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             ColorScheme = control.ColorScheme;
             SetTopMost(control.Parent, Handle);
             SetDpi(control);
@@ -146,7 +146,7 @@ namespace AntdUI
         }
         public override void PrintContent(Canvas g, Rectangle rect, GraphicsState state)
         {
-            if (nodata) g.PaintEmpty(rect, Font, Color.FromArgb(180, Colour.Text.GetSymbol(ColorScheme, "emptyFore", name)));
+            if (nodata) g.PaintEmpty(rect, FontMe, Color.FromArgb(180, Colour.Text.GetSymbol(ColorScheme, "emptyFore", name)));
             else
             {
                 int sy = ScrollBar.Value;
@@ -231,7 +231,7 @@ namespace AntdUI
                         g.Fill(brush, path);
                     }
                 }
-                DrawTextIconSelect(g, it, fore, foreSub, font ?? Font);
+                DrawTextIconSelect(g, it, fore, foreSub, font ?? FontMe);
                 g.PaintIconCore(new Rectangle(it.Rect.Right - it.Rect.Height, it.Rect.Y, it.Rect.Height, it.Rect.Height), SvgDb.IcoSuccessGhost, Colour.Primary.Get(ColorScheme, name, cname), .46F);
                 if (it.Online.HasValue)
                 {
@@ -248,14 +248,14 @@ namespace AntdUI
         {
             if (it.SID)
             {
-                if (it.Group) g.DrawText(it.Text, Font, brush_fore, it.RectText, sf);
+                if (it.Group) g.DrawText(it.Text, FontMe, brush_fore, it.RectText, sf);
                 else
                 {
                     if (MaxChoiceCount > 0 && selectedValue.Count >= MaxChoiceCount)
                     {
                         using (var subbrush = new SolidBrush(Colour.TextQuaternary.Get(ColorScheme, name, cname)))
                         {
-                            DrawTextIcon(g, it, subbrush, null, null, Font);
+                            DrawTextIcon(g, it, subbrush, null, null, FontMe);
                         }
                     }
                     else
@@ -268,7 +268,7 @@ namespace AntdUI
                                 g.Fill(brush_back_hover, path);
                             }
                         }
-                        DrawTextIcon(g, it, brush, fore ?? it.Fore, foreSub, font ?? Font);
+                        DrawTextIcon(g, it, brush, fore ?? it.Fore, foreSub, font ?? FontMe);
                     }
                     if (it.Online.HasValue)
                     {
@@ -292,7 +292,7 @@ namespace AntdUI
                     {
                         g.Fill(brush_back, it.Rect);
                     }
-                    DrawTextIconSelect(g, it, fore, foreSub, font ?? Font);
+                    DrawTextIconSelect(g, it, fore, foreSub, font ?? FontMe);
                     g.PaintIconCore(new Rectangle(it.Rect.Right - it.Rect.Height, it.Rect.Y, it.Rect.Height, it.Rect.Height), SvgDb.IcoSuccessGhost, Colour.Primary.Get(ColorScheme, name, cname), .46F);
                 }
                 else
@@ -301,14 +301,14 @@ namespace AntdUI
                     {
                         using (var subbrush = new SolidBrush(Colour.TextQuaternary.Get(ColorScheme, name, cname)))
                         {
-                            DrawTextIcon(g, it, subbrush, null, null, Font);
+                            DrawTextIcon(g, it, subbrush, null, null, FontMe);
                         }
                     }
                     else
                     {
                         if (PARENT.OnDrawItem(g, it.Rect, it, false, out var fore, out var foreSub, out var font)) return;
                         if (it.Hover) g.Fill(brush_back_hover, it.Rect);
-                        DrawTextIcon(g, it, brush, fore ?? it.Fore, foreSub, font ?? Font);
+                        DrawTextIcon(g, it, brush, fore ?? it.Fore, foreSub, font ?? FontMe);
                     }
                 }
                 if (it.Online.HasValue)
@@ -370,7 +370,7 @@ namespace AntdUI
         List<ObjectItem> LoadLayout(bool autoWidth, int width, IList<object> items, string? search, bool init = false) => this.GDI(g => LoadLayout(g, autoWidth, width, SearchList(items, search), init));
         List<ObjectItem> LoadLayout(Canvas g, bool autoWidth, int width, IList<object> items, bool init)
         {
-            var text_height = g.MeasureString(Config.NullText, Font).Height;
+            var text_height = g.MeasureString(Config.NullText, FontMe).Height;
             if (items.Count > 0)
             {
                 nodata = false;
@@ -436,7 +436,7 @@ namespace AntdUI
             {
                 nodata = true;
                 int w = width;
-                if (autoWidth) w = (int)(g.MeasureText(Localization.Get("NoData", "暂无数据"), Font).Width * 1.6F);
+                if (autoWidth) w = (int)(g.MeasureText(Localization.Get("NoData", "暂无数据"), FontMe).Width * 1.6F);
                 if (init) tmpW = w;
                 if (DropNoMatchClose) IClose();
                 else SetSize(w, text_height * 5);
@@ -458,11 +458,11 @@ namespace AntdUI
             if (obj is SelectItem it)
             {
                 if (it.IconRatio.HasValue) icon_size = (int)(text_height * it.IconRatio.Value);
-                int tmp = it.TextWidth = g.MeasureText(it.Text, Font).Width;
+                int tmp = it.TextWidth = g.MeasureText(it.Text, FontMe).Width;
                 tmp += icon_size;
                 if (it.SubText != null)
                 {
-                    it.SubTextWidth = g.MeasureText(it.SubText, Font).Width;
+                    it.SubTextWidth = g.MeasureText(it.SubText, FontMe).Width;
                     tmp += it.SubTextWidth + icon_gap;
                 }
                 if (it.Online > -1) tmp += icon_size;
@@ -476,7 +476,7 @@ namespace AntdUI
             {
                 var text = obj.ToString();
                 if (text == null) return 0;
-                var size = g.MeasureText(text, Font);
+                var size = g.MeasureText(text, FontMe);
                 return size.Width;
             }
         }
@@ -487,8 +487,8 @@ namespace AntdUI
                 if (item is SelectItem it)
                 {
                     if (it.SubText == null) continue;
-                    it.TextWidth = g.MeasureText(it.Text, Font).Width;
-                    it.SubTextWidth = g.MeasureText(it.SubText, Font).Width;
+                    it.TextWidth = g.MeasureText(it.Text, FontMe).Width;
+                    it.SubTextWidth = g.MeasureText(it.SubText, FontMe).Width;
                 }
             }
         }
@@ -526,12 +526,36 @@ namespace AntdUI
                         item.RectIcon = new Rectangle(rect.X + ux, rect.Y + icon_xy, icon_size, icon_size);
                         ux += tmp;
                     }
-                    if (item.HasSub) item.RectArrow = new Rectangle(rect.Right - gap_x - icon_size, rect.Y + icon_xy, icon_size, icon_size);
-                    if (it.SubText == null) item.RectText = new Rectangle(rect.X + ux, rect.Y, it.TextWidth, rect.Height);
+                    //右侧被箭头/勾选图标占用的宽度
+                    int uw = gap_x + icon_size;
+                    if (item.HasSub)
+                    {
+                        item.RectArrow = new Rectangle(rect.Right - gap_x - icon_size, rect.Y + icon_xy, icon_size, icon_size);
+                        uw += icon_size + icon_gap;
+                    }
+                    //文本可用区域（左侧已让出在线点/图标，右侧已让出箭头/勾选图标）
+                    int text_x = rect.X + ux, text_w = rect.Width - ux - uw;
+                    if (text_w < 0) text_w = 0;
+                    if (it.SubText == null) item.RectText = new Rectangle(text_x, rect.Y, text_w, rect.Height);
                     else
                     {
-                        item.RectText = new Rectangle(rect.X + ux, rect.Y, it.TextWidth, rect.Height);
-                        item.RectSubText = new Rectangle(rect.X + ux + it.TextWidth + icon_gap, item.RectText.Y, it.SubTextWidth, item.RectText.Height);
+                        int sub_w = it.SubTextWidth, gap = icon_gap;
+                        if (it.TextWidth + gap + sub_w > text_w)
+                        {
+                            //空间不足，优先压缩主文本
+                            if (sub_w > text_w) sub_w = text_w;
+                            int w2 = text_w - sub_w - gap;
+                            if (w2 < 0) w2 = 0;
+                            item.RectText = new Rectangle(text_x, rect.Y, w2, rect.Height);
+                            item.RectSubText = new Rectangle(text_x + w2 + gap, rect.Y, sub_w, rect.Height);
+                        }
+                        else
+                        {
+                            //主文本与副文本作为一个整体参与水平对齐
+                            int sx = AlignX(sf, text_x, text_w, it.TextWidth + gap + sub_w);
+                            item.RectText = new Rectangle(sx, rect.Y, it.TextWidth, rect.Height);
+                            item.RectSubText = new Rectangle(sx + it.TextWidth + gap, rect.Y, sub_w, rect.Height);
+                        }
                     }
                 }
                 else item = new ObjectItem(value, i, rect, new Rectangle(rect.X + gap_x, rect.Y, rect.Width - gap_x2, rect.Height)) { NoIndex = no_id };
@@ -539,6 +563,23 @@ namespace AntdUI
                 y += item_height;
             }
             return item;
+        }
+
+        /// <summary>
+        /// 按水平对齐方式计算内容起始坐标
+        /// </summary>
+        /// <param name="sf">布局方式</param>
+        /// <param name="x">可用区域起始坐标</param>
+        /// <param name="width">可用区域宽度</param>
+        /// <param name="content">内容实际宽度</param>
+        static int AlignX(FormatFlags sf, int x, int width, int content)
+        {
+            if (content < width)
+            {
+                if ((sf & FormatFlags.HorizontalCenter) == FormatFlags.HorizontalCenter) return x + (width - content) / 2;
+                if ((sf & FormatFlags.Right) == FormatFlags.Right) return x + width - content;
+            }
+            return x;
         }
 
         public void FocusItem(ObjectItem item)

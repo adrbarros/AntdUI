@@ -30,7 +30,7 @@ namespace AntdUI
             keyid = nameof(AntdUI.Select);
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             ColorScheme = control.ColorScheme;
             SetTopMost(control.Parent, Handle);
             SetDpi(control);
@@ -60,7 +60,7 @@ namespace AntdUI
             keyid = nameof(Dropdown);
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             ColorScheme = control.ColorScheme;
             SetDpi(control);
             SetTopMost(control.Parent, Handle);
@@ -91,7 +91,7 @@ namespace AntdUI
             keyid = nameof(Tabs);
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             ColorScheme = control.ColorScheme;
             CloseMode = CloseMode.Leave;
             SetTopMost(control.Parent, Handle);
@@ -135,7 +135,7 @@ namespace AntdUI
             keyid = nameof(Table);
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             ColorScheme = control.ColorScheme;
             Tag = cell;
             CloseMode = CloseMode.Leave;
@@ -175,7 +175,7 @@ namespace AntdUI
             keyid = nameof(AntdUI.Select);
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             lay = parent;
             SetTopMost(control.Parent, Handle);
             SetDpi(control);
@@ -206,7 +206,7 @@ namespace AntdUI
             keyid = nameof(Dropdown);
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             lay = parent;
             SetTopMost(control.Parent, Handle);
             SetDpi(control);
@@ -236,7 +236,7 @@ namespace AntdUI
             keyid = nameof(Table);
             PARENT = control;
             cname = control.Name;
-            Font = control.Font;
+            SetFont(control.Font);
             lay = parent;
             Tag = cell;
             SetTopMost(control.Parent, Handle);
@@ -265,6 +265,7 @@ namespace AntdUI
 
         void Init()
         {
+            InitKeyboardSelection();
             if (OS.Win7OrLower && ScrollBar.ShowY) Select();
             KeyCall = keys =>
             {
@@ -336,6 +337,24 @@ namespace AntdUI
             };
         }
 
+        void InitKeyboardSelection()
+        {
+            int firstIndex = -1;
+            for (int i = 0; i < Items.Count; i++)
+            {
+                var item = Items[i];
+                if (!item.Enable || !item.SID) continue;
+                if (firstIndex < 0) firstIndex = i;
+                if (Equals(item.Tag, selectedValue))
+                {
+                    hoveindex = i;
+                    break;
+                }
+            }
+            if (hoveindex < 0) hoveindex = firstIndex;
+            if (hoveindex > -1) Items[hoveindex].SetHover(true);
+        }
+
         int IMouseWheel(int delta)
         {
             int count = Items.Count, errcount = 0, newIndex;
@@ -404,7 +423,7 @@ namespace AntdUI
         }
         public override void PrintContent(Canvas g, Rectangle rect, GraphicsState state)
         {
-            if (nodata) g.PaintEmpty(rect, Font, Color.FromArgb(180, Colour.Text.GetSymbol(ColorScheme, "emptyFore", keyid)));
+            if (nodata) g.PaintEmpty(rect, FontMe, Color.FromArgb(180, Colour.Text.GetSymbol(ColorScheme, "emptyFore", keyid)));
             else
             {
                 int sy = ScrollBar.Value;
@@ -429,7 +448,7 @@ namespace AntdUI
         {
             if (it.SID)
             {
-                if (it.Group) g.DrawText(it.Text, Font, brush_fore, it.RectText, sf);
+                if (it.Group) g.DrawText(it.Text, FontMe, brush_fore, it.RectText, sf);
                 else if (Equals(it.Tag, selectedValue))
                 {
                     if (DrawItem(g, it.Rect, it, true, out var fore, out var foreSub, out var font)) return;
@@ -452,7 +471,7 @@ namespace AntdUI
                             g.Fill(brush_back_hover, path);
                         }
                     }
-                    DrawTextIcon(g, it, brush, fore ?? it.Fore, foreSub, font ?? Font);
+                    DrawTextIcon(g, it, brush, fore ?? it.Fore, foreSub, font ?? FontMe);
                 }
                 if (it.Online.HasValue)
                 {
@@ -482,7 +501,7 @@ namespace AntdUI
         {
             if (font_real == null)
             {
-                using (var font = new Font(Font, FontStyle.Bold))
+                using (var font = new Font(FontMe, FontStyle.Bold))
                 {
                     DrawTextIconSelectCore(g, it, fore, foreSub, font);
                 }
@@ -562,7 +581,7 @@ namespace AntdUI
         List<ObjectItem> LoadLayout(bool autoWidth, int width, IList<object> items, string? search, bool init = false) => this.GDI(g => LoadLayout(g, autoWidth, width, SearchList(items, search), init));
         List<ObjectItem> LoadLayout(Canvas g, bool autoWidth, int width, IList<object> items, bool init)
         {
-            var text_height = g.MeasureString(Config.NullText, Font).Height;
+            var text_height = g.MeasureString(Config.NullText, FontMe).Height;
             if (items.Count > 0)
             {
                 nodata = false;
@@ -577,7 +596,7 @@ namespace AntdUI
                 int maxw, maxwr;
                 if (autoWidth)
                 {
-                    using (var font = new Font(Font, FontStyle.Bold))
+                    using (var font = new Font(FontMe, FontStyle.Bold))
                     {
                         maxw = ItemMaxWidth(g, font, items, text_height, icon_size, icon_gap, gap_x);
                         maxwr = maxw + gap_x2;
@@ -651,7 +670,7 @@ namespace AntdUI
             {
                 nodata = true;
                 int w = width, h = text_height * 5;
-                if (autoWidth) w = (int)(g.MeasureText(Localization.Get("NoData", "暂无数据"), Font).Width * 1.6F);
+                if (autoWidth) w = (int)(g.MeasureText(Localization.Get("NoData", "暂无数据"), FontMe).Width * 1.6F);
                 if (init) tmpW = w;
                 else if (animateConfig.Inverted)
                 {
@@ -703,7 +722,7 @@ namespace AntdUI
         }
         void ItemMaxWidth2(Canvas g, IList<object> items)
         {
-            using (var font = new Font(Font, FontStyle.Bold))
+            using (var font = new Font(FontMe, FontStyle.Bold))
             {
                 foreach (var item in items)
                 {
@@ -750,17 +769,42 @@ namespace AntdUI
                         item.RectIcon = new Rectangle(rect.X + ux, rect.Y + icon_xy, icon_size, icon_size);
                         ux += tmp;
                     }
-                    if (item.HasSub) item.RectArrow = new Rectangle(rect.Right - gap_x - icon_size, rect.Y + icon_xy, icon_size, icon_size);
+                    //右侧被箭头/关闭按钮占用的宽度
+                    int uw = gap_x;
+                    if (item.HasSub)
+                    {
+                        item.RectArrow = new Rectangle(rect.Right - gap_x - icon_size, rect.Y + icon_xy, icon_size, icon_size);
+                        uw += icon_size + icon_gap;
+                    }
                     else if (CloseIcon)
                     {
                         int dot_xy = (item_height - text_height) / 2;
                         item.RectClose = new Rectangle(rect.Right - gap_x - text_height + dot_xy, rect.Y + dot_xy, text_height, text_height);
+                        uw += text_height - dot_xy;
                     }
-                    if (it.SubText == null) item.RectText = new Rectangle(rect.X + ux, rect.Y, it.TextWidth, rect.Height);
+                    //文本可用区域（左侧已让出在线点/图标，右侧已让出箭头/关闭按钮）
+                    int text_x = rect.X + ux, text_w = rect.Width - ux - uw;
+                    if (text_w < 0) text_w = 0;
+                    if (it.SubText == null) item.RectText = new Rectangle(text_x, rect.Y, text_w, rect.Height); //文本占满可用区域，水平对齐交给 sf（DropDownTextAlign）处理
                     else
                     {
-                        item.RectText = new Rectangle(rect.X + ux, rect.Y, it.TextWidth, rect.Height);
-                        item.RectSubText = new Rectangle(rect.X + ux + it.TextWidth + icon_gap, item.RectText.Y, it.SubTextWidth, item.RectText.Height);
+                        int sub_w = it.SubTextWidth, gap = icon_gap;
+                        if (it.TextWidth + gap + sub_w > text_w)
+                        {
+                            //空间不足，优先压缩主文本
+                            if (sub_w > text_w) sub_w = text_w;
+                            int w2 = text_w - sub_w - gap;
+                            if (w2 < 0) w2 = 0;
+                            item.RectText = new Rectangle(text_x, rect.Y, w2, rect.Height);
+                            item.RectSubText = new Rectangle(text_x + w2 + gap, rect.Y, sub_w, rect.Height);
+                        }
+                        else
+                        {
+                            //主文本与副文本作为一个整体参与水平对齐
+                            int sx = AlignX(sf, text_x, text_w, it.TextWidth + gap + sub_w);
+                            item.RectText = new Rectangle(sx, rect.Y, it.TextWidth, rect.Height);
+                            item.RectSubText = new Rectangle(sx + it.TextWidth + gap, rect.Y, sub_w, rect.Height);
+                        }
                     }
                 }
                 else
@@ -777,6 +821,23 @@ namespace AntdUI
                 y += item_height;
             }
             return item;
+        }
+
+        /// <summary>
+        /// 按水平对齐方式计算内容起始坐标
+        /// </summary>
+        /// <param name="sf">布局方式</param>
+        /// <param name="x">可用区域起始坐标</param>
+        /// <param name="width">可用区域宽度</param>
+        /// <param name="content">内容实际宽度</param>
+        static int AlignX(FormatFlags sf, int x, int width, int content)
+        {
+            if (content < width)
+            {
+                if ((sf & FormatFlags.HorizontalCenter) == FormatFlags.HorizontalCenter) return x + (width - content) / 2;
+                if ((sf & FormatFlags.Right) == FormatFlags.Right) return x + width - content;
+            }
+            return x;
         }
 
         public void FocusItem(ObjectItem item)
