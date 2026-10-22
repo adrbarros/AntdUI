@@ -106,9 +106,18 @@ namespace AntdUI
         {
             DwmEnabled = Win32.IsCompositionEnabled;
             Win32.User32.DisableProcessWindowsGhosting();
+            if (WindowState != FormWindowState.Maximized) SetSize(base.ClientSize);
             HandMessage();
             if (DwmEnabled) DwmArea();
             base.OnHandleCreated(e);
+        }
+
+        void SetSize(Size size)
+        {
+            Size max = MaximumSize, min = MinimumSize;
+            MaximumSize = MinimumSize = base.ClientSize = size;
+            MinimumSize = min;
+            MaximumSize = max;
         }
 
         protected override void WndProc(ref System.Windows.Forms.Message m)
