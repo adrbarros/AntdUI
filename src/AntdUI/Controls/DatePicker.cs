@@ -257,6 +257,11 @@ namespace AntdUI
             if (close) subForm?.IClose();
             subForm = null;
             ExpandDrop = false;
+            if (change > 0)
+            {
+                change = 0;
+                SetText(_value);
+            }
         }
         void OpenSubForm()
         {
@@ -328,15 +333,35 @@ namespace AntdUI
         {
             if (keyData == Keys.Escape) ExpandDrop = false;
             else if (keyData == Keys.Down) ExpandDrop = true;
-            else if (keyData == Keys.Enter && DateTime.TryParse(Text, out var _d)) PValue(_d);
+            else if (keyData == Keys.Enter && DateTime.TryParse(Text, out var _d))
+            {
+                PValue(_d);
+                ExpandDrop = false;
+            }
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
+        int change = 0;
         protected override void OnSetText(string text, bool isempty)
         {
-            if (EnabledValueTextChange && !isempty)
+            if (isempty) return;
+            if (EnabledValueTextChange)
             {
                 if (DateTime.TryParseExact(text, Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var _d)) PValue(_d);
+            }
+            else
+            {
+                if (subForm == null)
+                {
+                    if (HasFocus) ExpandDrop = true;
+                    return;
+                }
+                if (DateTime.TryParseExact(text, Format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var _d))
+                {
+                    change++;
+                    subForm.SelDate = subForm.Date = _d;
+                    subForm.Print();
+                }
             }
         }
 
