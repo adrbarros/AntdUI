@@ -122,7 +122,7 @@ namespace AntdUI
                 if (dateFormat == value) return;
                 dateFormat = value;
                 ShowTime = dateFormat.Contains("H");
-                if (_value == null) Text = "";
+                if (_value == null) Text = string.Empty;
                 else Text = _value[0].ToString(dateFormat) + "\t" + _value[1].ToString(dateFormat);
             }
         }
@@ -144,7 +144,7 @@ namespace AntdUI
 
         void SetText(DateTime[]? value)
         {
-            if (value == null) Text = "";
+            if (value == null) Text = string.Empty;
             else Text = value[0].ToString(Format) + "\t" + value[1].ToString(Format);
         }
 
@@ -420,30 +420,34 @@ namespace AntdUI
 
         protected override void OnLostFocus(EventArgs e)
         {
-            ILostFocus();
             base.OnLostFocus(e);
+            if (LostFocusClose)
+            {
+                ExpandDrop = StartFocused = EndFocused = false;
+                StartEndFocused();
+                AnimationBarValue = RectangleF.Empty;
+            }
+            if (IsTextEmpty)
+            {
+                Value = null;
+                return;
+            }
+            string text = Text;
+            int index = text.IndexOf("\t");
+            if (index > 0)
+            {
+                string stext = text.Substring(0, index), etext = text.Substring(index + 1);
+                if (DateTime.TryParse(stext, out var date_s) && DateTime.TryParse(etext, out var date_e)) Value = new DateTime[] { date_s, date_e };
+                SetText(_value);
+            }
         }
 
-        void ILostFocus()
+        bool LostFocusClose
         {
-            ExpandDrop = StartFocused = EndFocused = false;
-            StartEndFocused();
-            AnimationBarValue = RectangleF.Empty;
-            if (IsHandleCreated)
+            get
             {
-                if (IsTextEmpty)
-                {
-                    Value = null;
-                    return;
-                }
-                string text = Text;
-                int index = text.IndexOf("\t");
-                if (index > 0)
-                {
-                    string stext = text.Substring(0, index), etext = text.Substring(index + 1);
-                    if (DateTime.TryParse(stext, out var date_s) && DateTime.TryParse(etext, out var date_e)) Value = new DateTime[] { date_s, date_e };
-                    SetText(_value);
-                }
+                if (OS.Win7OrLower && (subForm?.Focused ?? false)) return true;
+                return false;
             }
         }
 

@@ -219,7 +219,7 @@ namespace AntdUI
         void ChangeValueNULL()
         {
             noex = true;
-            Text = "";
+            Text = string.Empty;
             selectedItem = null;
             selectedValue = null;
             selectedIndex = -1;
@@ -622,8 +622,9 @@ namespace AntdUI
         }
         protected override void OnLostFocus(EventArgs e)
         {
-            ExpandDrop = false;
             base.OnLostFocus(e);
+            if (OS.Win7OrLower && (subForm?.Focused ?? false)) return;
+            ExpandDrop = false;
         }
 
         #endregion
