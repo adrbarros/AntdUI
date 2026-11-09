@@ -1062,8 +1062,12 @@ namespace AntdUI
 
         void PaintIt(Canvas g, MenuItem it, Color fore, Color fore_active, Color fore_enabled, Color back_hover, Color back_active, float radius, bool enable)
         {
-            if (collapsed) PaintItemMini(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
-            else PaintItem(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
+            if (OnItemPaintBegin(g, it, it.rect, radius, fore, fore_active, back_hover, back_active))
+            {
+                if (collapsed) PaintItemMini(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
+                else PaintItem(g, it, fore, fore_active, fore_enabled, back_hover, back_active, radius, enable);
+                OnItemPaint(g, it, it.rect, radius, fore, fore_active, back_hover, back_active);
+            }
             it.PaintBadge(Font, it.rect, g, ColorScheme, Name);
         }
 
@@ -2172,6 +2176,29 @@ namespace AntdUI
         public event MenuCustomButtonEventHandler? CustomButtonClick;
 
         protected virtual void OnCustomButtonClick(MenuButton btn, MenuItem item) => CustomButtonClick?.Invoke(this, new MenuCustomButtonEventArgs(btn, item));
+
+        /// <summary>
+        /// 绘制项之前发生
+        /// </summary>
+        [Description("绘制项之前发生"), Category(nameof(CategoryAttribute.Behavior))]
+        public event MenuItemPaintBeginEventHandler? ItemPaintBegin;
+
+        /// <summary>
+        /// 绘制项时发生
+        /// </summary>
+        [Description("绘制项时发生"), Category(nameof(CategoryAttribute.Behavior))]
+        public event MenuItemPaintEventHandler? ItemPaint;
+
+        protected virtual bool OnItemPaintBegin(Canvas canvas, MenuItem it, Rectangle rect, float radius, Color fore, Color fore_active, Color back_hover, Color back_active)
+        {
+            if (ItemPaintBegin == null) return true;
+            var arge = new MenuItemPaintBeginEventArgs(canvas, it, it.rect, radius, fore, fore_active, back_hover, back_active);
+            ItemPaintBegin(this, arge);
+            if (arge.Handled) return false;
+            return true;
+        }
+
+        protected virtual void OnItemPaint(Canvas canvas, MenuItem it, Rectangle rect, float radius, Color fore, Color fore_active, Color back_hover, Color back_active) => ItemPaint?.Invoke(this, new MenuItemPaintEventArgs(canvas, it, it.rect, radius, fore, fore_active, back_hover, back_active));
 
         #endregion
 

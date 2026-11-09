@@ -862,35 +862,48 @@ namespace AntdUI
             }
             else if (showicon)
             {
-                icon_size = icon_ratio == 1 ? sHeight : (int)Math.Round(sHeight * icon_ratio);
-                var rect_icon = new Rectangle(rect.X + u_x + _gap, rect.Y + (rect.Height - icon_size) / 2, icon_size, icon_size);
-
-                bool showLeft = false;
-                if (iconSvg != null)
-                {
-                    if (PrintLogo(g, iconSvg, fore, rect_icon)) showLeft = true;
-                }
-                if (!showLeft)
-                {
-                    if (icon != null)
-                    {
-                        g.Image(icon, rect_icon);
-                        showLeft = true;
-                    }
-                    else
-                    {
-                        var form = Parent.FindPARENT(MDI);
-                        if (form != null && form.Icon != null)
-                        {
-                            g.Icon(form.Icon, rect_icon);
-                            showLeft = true;
-                        }
-                    }
-                }
-                u_x += (icon_size + _gap);
+                if (IPaintIcon(g, rect, fore, icon_ratio, sHeight, u_x, _gap, out icon_size)) u_x += (icon_size + _gap);
             }
             if (u_x > 0 || size.Width > 0) return u_x + _gap;
             return 0;
+        }
+
+        bool IPaintIcon(Canvas g, Rectangle rect, Color fore, float icon_ratio, int height, int u_x, int gap, out int icon_size)
+        {
+            if (iconSvg != null)
+            {
+                icon_size = icon_ratio == 1 ? height : (int)Math.Round(height * icon_ratio);
+                var rect_icon = new Rectangle(rect.X + u_x + gap, rect.Y + (rect.Height - icon_size) / 2, icon_size, icon_size);
+                if (PrintLogo(g, iconSvg, fore, rect_icon)) return true;
+            }
+            if (icon == null)
+            {
+                var form = Parent.FindPARENT(MDI);
+                if (form != null && form.Icon != null)
+                {
+                    icon_size = icon_ratio == 1 ? height : (int)Math.Round(height * icon_ratio);
+                    g.Icon(form.Icon, new Rectangle(rect.X + u_x + gap, rect.Y + (rect.Height - icon_size) / 2, icon_size, icon_size));
+                    return true;
+                }
+            }
+            else
+            {
+                int tmp_icon_size = icon_ratio == 1 ? height : (int)Math.Round(height * icon_ratio);
+                if (icon.Width == icon.Height)
+                {
+                    icon_size = tmp_icon_size;
+                    g.Image(icon, new Rectangle(rect.X + u_x + gap, rect.Y + (rect.Height - icon_size) / 2, icon_size, icon_size));
+                }
+                else
+                {
+                    int icon_h = tmp_icon_size;
+                    icon_size = (int)Math.Round((double)tmp_icon_size * icon.Width / icon.Height);
+                    g.Image(icon, new Rectangle(rect.X + u_x + gap, rect.Y + (rect.Height - icon_h) / 2, icon_size, icon_h));
+                }
+                return true;
+            }
+            icon_size = 0;
+            return false;
         }
 
         void IPaintButton(Canvas g, Rectangle rect, Color fore, Color fillSecondary, Size size)
