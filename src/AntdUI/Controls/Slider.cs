@@ -107,6 +107,23 @@ namespace AntdUI
             }
         }
 
+        int increment = 1;
+        /// <summary>
+        /// 键盘、鼠标滚轮和拖动修改值的步长，以 MinValue 为起点
+        /// </summary>
+        [Description("修改值的步长"), Category(nameof(CategoryAttribute.Data)), DefaultValue(1)]
+        public int Increment
+        {
+            get => increment;
+            set
+            {
+                if (value <= 0) throw new ArgumentOutOfRangeException(nameof(value), "Increment must be greater than zero.");
+                if (increment == value) return;
+                increment = value;
+                OnPropertyChanged(nameof(Increment));
+            }
+        }
+
         int _value = 0;
         /// <summary>
         /// 当前值
@@ -765,8 +782,7 @@ namespace AntdUI
                         }
                         return false;
                     }
-                    var value = _value + (increase ? 1 : -1);
-                    Value = Math.Max(_minValue, Math.Min(_maxValue, value));
+                    Value = NextIncrementValue(increase);
                     return true;
                 }
                 catch
@@ -774,6 +790,13 @@ namespace AntdUI
                 }
             }
             return false;
+        }
+
+        int NextIncrementValue(bool increase)
+        {
+            int offset = Math.Max(0, Value - _minValue);
+            int index = increase ? offset / increment + 1 : (offset == 0 ? 0 : (offset - 1) / increment);
+            return Math.Max(_minValue, Math.Min(_maxValue, _minValue + index * increment));
         }
 
         #endregion

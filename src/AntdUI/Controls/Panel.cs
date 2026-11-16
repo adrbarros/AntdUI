@@ -65,7 +65,7 @@ namespace AntdUI
         #region 阴影
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [Obsolete("use InnerPadding"), Description("内边距"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(typeof(Padding), "0, 0, 0, 0")]
+        [Obsolete("use InnerPadding"), Description("内边距"), Category(nameof(CategoryAttribute.Appearance)), DefaultValue(typeof(Padding), "0, 0, 0, 0"), Browsable(false)]
         public Padding padding
         {
             get => InnerPadding;
@@ -415,6 +415,14 @@ namespace AntdUI
         }
 
         #endregion
+
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override string Text
+        {
+            get => base.Text;
+            set => base.Text = value;
+        }
 
         #endregion
 
