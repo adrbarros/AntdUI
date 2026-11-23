@@ -275,7 +275,7 @@ namespace AntdUI
                                 {
                                     cellSelect!.value = cellSelect.COLUMN[r_value];
                                     SetValue(cell, r_value);
-                                    if (multiline) LoadLayout();
+                                    LoadLayout();
                                 }
                                 else
                                 {
@@ -327,7 +327,7 @@ namespace AntdUI
                                 {
                                     cellText.SetValue(o);
                                     SetValue(cell, o);
-                                    if (multiline) LoadLayout();
+                                    LoadLayout();
                                 }
                                 OnCellEditComplete(it.RECORD, i_row, i_col, column);
                             }
@@ -608,32 +608,24 @@ namespace AntdUI
         Rectangle RectInput(CELL cell, Rectangle rect, int sx, int sy, float borwidth, int wavesize)
         {
             int bor = (int)((wavesize + borwidth / 2F) * Dpi), bor2 = bor * 2, ry = rect.Y, rh = rect.Height;
-            if (EditAutoHeight)
-            {
-                int texth = this.GDI(g => g.MeasureString(Config.NullText, Font).Height), sps = (int)(texth * .4F), sps2 = sps * 2, h = texth + sps2 + bor2;
-                if (h > rect.Height)
-                {
-                    rh = h - bor2;
-                    ry = rect.Y + (rect.Height - rh) / 2;
-                    if ((ry + h) - sy > rect_read.Bottom) ry = rect_read.Bottom + sy - rh - bor;
-                }
-            }
+            if (EditAutoHeight) InputEditAutoHeight(rect, sy, bor2, ref ry, ref rh);
             return new Rectangle(rect.X - sx - bor, ry - sy - bor, rect.Width + bor2, rh + bor2);
         }
         Rectangle RectInputDefault(CELL cell, Rectangle rect, int sx, int sy, float borwidth, int wavesize)
         {
             int bor = (int)((wavesize + borwidth / 2F) * Dpi), bor2 = bor * 2, ry = rect.Y, rh = rect.Height;
-            if (EditAutoHeight)
-            {
-                int texth = this.GDI(g => g.MeasureString(Config.NullText, Font).Height), sps = (int)(texth * .4F), sps2 = sps * 2, h = texth + sps2 + bor2;
-                if (h > rect.Height)
-                {
-                    rh = h;
-                    ry = rect.Y + (rect.Height - rh) / 2;
-                    if ((ry + h) - sy > rect_read.Bottom) ry = rect_read.Bottom + sy - rh;
-                }
-            }
+            if (EditAutoHeight) InputEditAutoHeight(rect, sy, bor2, ref ry, ref rh);
             return new Rectangle(rect.X - sx, ry - sy, rect.Width, rh);
+        }
+        void InputEditAutoHeight(Rectangle rect, int sy, int bor2, ref int ry, ref int rh)
+        {
+            int texth = this.GDI(g => g.MeasureString(Config.NullText, Font).Height), h = texth + (int)(texth * .4F);
+            if (h > rect.Height)
+            {
+                rh = h;
+                ry = rect.Y + (rect.Height - rh) / 2;
+                if ((ry + h) - sy > rect_read.Bottom) ry = rect_read.Bottom + sy - rh;
+            }
         }
         Input CreateInput(bool multiline, object? value, Column column, Rectangle rect)
         {
@@ -711,6 +703,7 @@ namespace AntdUI
             }
             if (AddEditInput(input, input.Text, call, region, column))
             {
+                input.AcceptsEnter = true;
                 input.KeyPress += InputEdit_KeyPress;
                 // 行级编辑由 EnterEditMode 在全部创建完成后统一聚焦首框，创建过程中不逐个转移焦点
                 if (!rowEditing) input.Focus();

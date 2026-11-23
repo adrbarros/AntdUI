@@ -672,8 +672,7 @@ namespace AntdUI
         #region 加载动画
 
         bool loading = false;
-        int AnimationLoadingValue = 0;
-        int AnimationLoadingWaveValue = 0;
+        float AnimationLoadingValue = 0f;
         /// <summary>
         /// 加载状态
         /// </summary>
@@ -690,19 +689,23 @@ namespace AntdUI
                 ThreadLoading?.Dispose();
                 if (loading)
                 {
-                    ThreadLoading = new AnimationTask(new AnimationLinearConfig(this, i =>
+                    ThreadLoading = new AnimationTask(new AnimationLinearFixedConfig(this, i =>
                     {
-                        AnimationLoadingWaveValue += 1;
-                        if (AnimationLoadingWaveValue > 100) AnimationLoadingWaveValue = 0;
                         AnimationLoadingValue = i;
                         Invalidate();
                         return loading;
-                    }, 10, 360, 6).SetEnd(Invalidate));
+                    }, 10, Animation.TotalFrames(10, LoadingSpeedTime)).SetEnd(Invalidate).SetPriority());
                 }
                 else Invalidate();
                 OnPropertyChanged(nameof(Loading));
             }
         }
+
+        /// <summary>
+        /// 加载速度(毫秒)
+        /// </summary>
+        [Description("加载速度(毫秒)"), Category("加载"), DefaultValue(1000)]
+        public int LoadingSpeedTime { get; set; } = 1000;
 
         /// <summary>
         /// 加载图标
@@ -1006,10 +1009,16 @@ namespace AntdUI
         public bool AcceptsTab { get; set; }
 
         /// <summary>
-        /// 多行编辑是否允许输入退出键
+        /// 是否允许输入退出键
         /// </summary>
-        [Description("多行编辑是否允许输入退出键"), Category(nameof(CategoryAttribute.Behavior)), DefaultValue(false)]
+        [Description("是否允许输入退出键"), Category(nameof(CategoryAttribute.Behavior)), DefaultValue(false)]
         public bool AcceptsEscape { get; set; }
+
+        /// <summary>
+        /// 是否允许输入回车键
+        /// </summary>
+        [Description("是否允许输入回车键"), Category(nameof(CategoryAttribute.Behavior)), DefaultValue(false)]
+        public bool AcceptsEnter { get; set; }
 
         /// <summary>
         /// 失去焦点时是否隐藏选定内容
